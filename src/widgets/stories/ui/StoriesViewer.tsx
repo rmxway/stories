@@ -109,6 +109,15 @@ export function StoriesViewer({
 		[onTapNext],
 	);
 
+	const handleOverlayClick = useCallback(
+		(e: MouseEvent<HTMLDivElement>) => {
+			if (e.target === e.currentTarget) {
+				onClose();
+			}
+		},
+		[onClose],
+	);
+
 	if (!story) {
 		return null;
 	}
@@ -119,6 +128,7 @@ export function StoriesViewer({
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
 			transition={{ duration: 0.2 }}
+			onClick={handleOverlayClick}
 		>
 			<CloseButton type="button" aria-label="Закрыть" onClick={onClose}>
 				<Icon icon="times-small" size={22} />
