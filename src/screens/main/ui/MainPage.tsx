@@ -1,5 +1,7 @@
 'use client';
 
+import { StoriesWidget } from '@/widgets/stories';
+
 import { Lead, Root } from './styled';
 
 export function MainPage() {
@@ -14,6 +16,7 @@ export function MainPage() {
 				<code>widgets</code>, <code>features</code>,{' '}
 				<code>entities</code>, <code>shared</code>.
 			</Lead>
+			<StoriesWidget />
 		</Root>
 	);
 }

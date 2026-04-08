@@ -12,6 +12,6 @@ export const Root = styled.main`
 
 export const Lead = styled.p`
 	width: 500px;
-    max-width: 100%;
+	max-width: 100%;
 	line-height: 1.5;
 `;
