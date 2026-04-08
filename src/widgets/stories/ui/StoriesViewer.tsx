@@ -74,6 +74,12 @@ export function StoriesViewer({
 			suppressTapClickRef.current = false;
 			holdStartedAtRef.current = getNow();
 			setHoldPaused(true);
+			/* Не захватываем указатель, если нажали на кнопку зоны тапа — иначе pointerup
+			 * уйдёт на shell и click на кнопке не сработает. */
+			const t = e.target;
+			if (t instanceof Element && t.closest('button')) {
+				return;
+			}
 			e.currentTarget.setPointerCapture(e.pointerId);
 		},
 		[],
