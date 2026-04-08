@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
@@ -136,7 +136,10 @@ export const StoryImageInner = styled.div`
 	overflow: hidden;
 `;
 
-export const StoryTapZone = styled.button<{ $side: 'left' | 'right' }>`
+export const StoryTapZone = styled.button<{
+	$side: 'left' | 'right';
+	$pressed?: boolean;
+}>`
 	position: absolute;
 	top: 0;
 	bottom: 0;
@@ -146,8 +149,28 @@ export const StoryTapZone = styled.button<{ $side: 'left' | 'right' }>`
 	background: transparent;
 	cursor: pointer;
 	z-index: 1;
+	overflow: hidden;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
 
 	${({ $side }) => ($side === 'left' ? 'left: 0;' : 'right: 0;')}
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		opacity: ${({ $pressed }) => ($pressed ? 1 : 0)};
+		pointer-events: none;
+		transition: opacity 0.22s ease-out;
+		${({ $side }) => css`
+			background: linear-gradient(
+				to ${$side === 'left' ? 'right' : 'left'},
+				rgba(0, 0, 0, 0.2) 0%,
+				rgba(0, 0, 0, 0) 30%,
+				transparent 100%
+			);
+		`}
+	}
 
 	&:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.35);

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import {
+	type ComponentProps,
 	type MouseEvent,
 	type PointerEvent,
 	type RefObject,
@@ -47,6 +48,22 @@ function runStoryTapZoneIfNotSuppressed(
 	action();
 }
 
+type StoryTapZonePointerPressProps = Pick<
+	ComponentProps<typeof StoryTapZone>,
+	'onPointerDown' | 'onPointerUp' | 'onPointerCancel' | 'onPointerLeave'
+>;
+
+function storyTapZonePressPointerProps(
+	setPressed: (value: boolean) => void,
+): StoryTapZonePointerPressProps {
+	return {
+		onPointerDown: () => setPressed(true),
+		onPointerUp: () => setPressed(false),
+		onPointerCancel: () => setPressed(false),
+		onPointerLeave: () => setPressed(false),
+	};
+}
+
 type StoriesViewerProps = {
 	stories: readonly StoryItem[];
 	activeIndex: number;
@@ -66,6 +83,8 @@ export function StoriesViewer({
 }: StoriesViewerProps) {
 	const story = stories[activeIndex];
 	const [holdPaused, setHoldPaused] = useState(false);
+	const [leftTapPressed, setLeftTapPressed] = useState(false);
+	const [rightTapPressed, setRightTapPressed] = useState(false);
 	const holdStartedAtRef = useRef(0);
 	const suppressTapClickRef = useRef(false);
 
@@ -153,12 +172,20 @@ export function StoriesViewer({
 							type="button"
 							aria-label="Предыдущий сторис"
 							$side="left"
+							$pressed={leftTapPressed}
+							{...storyTapZonePressPointerProps(
+								setLeftTapPressed,
+							)}
 							onClick={handleTapPreviousGuarded}
 						/>
 						<StoryTapZone
 							type="button"
 							aria-label="Следующий сторис"
 							$side="right"
+							$pressed={rightTapPressed}
+							{...storyTapZonePressPointerProps(
+								setRightTapPressed,
+							)}
 							onClick={handleTapNextGuarded}
 						/>
 					</StoryImageInner>
