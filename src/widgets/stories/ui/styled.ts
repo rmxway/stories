@@ -48,6 +48,8 @@ export const StoryAvatar = styled.img`
 	height: 100%;
 	object-fit: cover;
 	display: block;
+	user-select: none;
+	pointer-events: none;
 `;
 
 export const Overlay = styled.div`
@@ -72,11 +74,11 @@ export const StoryShell = styled.div`
 `;
 
 export const CloseButton = styled.button`
-	position: fixed;
-	top: 12px;
-	right: 12px;
-	z-index: 1002;
-	padding: 8px;
+	position: absolute;
+	top: 10px;
+	right: 0;
+	z-index: 3;
+	padding: 10px;
 	border: none;
 	background: transparent;
 	color: rgba(255, 255, 255, 0.9);
@@ -100,7 +102,7 @@ export const ProgressRow = styled.div`
 
 export const ProgressTrack = styled.div`
 	flex: 1;
-	height: 3px;
+	height: 2px;
 	border-radius: 2px;
 	background: rgba(255, 255, 255, 0.25);
 	overflow: hidden;
@@ -109,9 +111,10 @@ export const ProgressTrack = styled.div`
 export const ProgressFill = styled.div`
 	height: 100%;
 	width: 100%;
-	transform-origin: left center;
+	transform-origin: left;
 	background: #fff;
 	border-radius: 2px;
+	margin-left: 1px;
 `;
 
 export const ProgressFillComplete = styled(ProgressFill)`
@@ -183,5 +186,6 @@ export const StoryImage = styled.img`
 	height: 100%;
 	object-fit: cover;
 	display: block;
+	user-select: none;
 	pointer-events: none;
 `;

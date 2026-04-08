@@ -128,15 +128,6 @@ export function StoriesViewer({
 		[onTapNext],
 	);
 
-	const handleOverlayClick = useCallback(
-		(e: MouseEvent<HTMLDivElement>) => {
-			if (e.target === e.currentTarget) {
-				onClose();
-			}
-		},
-		[onClose],
-	);
-
 	if (!story) {
 		return null;
 	}
@@ -147,11 +138,7 @@ export function StoriesViewer({
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
 			transition={{ duration: 0.2 }}
-			onClick={handleOverlayClick}
 		>
-			<CloseButton type="button" aria-label="Закрыть" onClick={onClose}>
-				<Icon icon="times-small" size={22} />
-			</CloseButton>
 			<MotionStoryShell
 				layoutId="stories-shell"
 				transition={{ type: 'spring', damping: 26, stiffness: 320 }}
@@ -159,6 +146,13 @@ export function StoriesViewer({
 				onPointerUp={handlePointerEndShell}
 				onPointerCancel={handlePointerEndShell}
 			>
+				<CloseButton
+					type="button"
+					aria-label="Закрыть"
+					onClick={onClose}
+				>
+					<Icon icon="times-small" size={50} />
+				</CloseButton>
 				<StoriesProgress
 					count={stories.length}
 					activeIndex={activeIndex}

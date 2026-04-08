@@ -28,7 +28,7 @@ function ActiveStoryProgressFill({
 	const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
 
 	useEffect(() => {
-		scaleX.set(0);
+		scaleX.set(0.001);
 		controlsRef.current?.stop();
 		controlsRef.current = animate(scaleX, 1, {
 			duration: STORY_DURATION_SEC,
