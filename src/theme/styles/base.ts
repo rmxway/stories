@@ -1,6 +1,6 @@
 import { css } from 'styled-components';
 
-import { media } from '../media';
+import { media } from '@/theme/media';
 
 const base = css`
 	*,

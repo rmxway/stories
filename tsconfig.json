@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"baseUrl": ".",
 		"target": "ES2017",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
@@ -15,7 +16,8 @@
 		"incremental": true,
 		"plugins": [{ "name": "next" }],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@public/*": ["./public/*"]
 		}
 	},
 	"include": [
@@ -23,7 +25,8 @@
 		"**/*.ts",
 		"**/*.tsx",
 		".next/types/**/*.ts",
-		"@types/**/*.d.ts"
+		"@types/**/*.d.ts",
+		".fantasticonrc"
 	],
 	"exclude": ["node_modules"]
 }

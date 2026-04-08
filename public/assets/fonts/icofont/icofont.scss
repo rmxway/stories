@@ -1,0 +1,49 @@
+@use "sass:map";
+
+$icofont-font: 'icofont';
+
+@font-face {
+    font-family: $icofont-font;
+    src: url(".//icofont.ttf?0e5dc025e7dfe78caca61f4793b54dd4") format("truetype"),
+url(".//icofont.woff?0e5dc025e7dfe78caca61f4793b54dd4") format("woff"),
+url(".//icofont.woff2?0e5dc025e7dfe78caca61f4793b54dd4") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+.icofont {
+    font-family: $icofont-font !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    font-size: 1rem;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+$icofont-map: (
+    'trash': '\f101',
+    'times-small': '\f102',
+    'favorite': '\f103',
+    'favorite-fill': '\f104',
+    'arrow-down': '\f105',
+);
+
+.icofont-trash:before {
+    content: map.get($icofont-map, 'trash');
+}
+.icofont-times-small:before {
+    content: map.get($icofont-map, 'times-small');
+}
+.icofont-favorite:before {
+    content: map.get($icofont-map, 'favorite');
+}
+.icofont-favorite-fill:before {
+    content: map.get($icofont-map, 'favorite-fill');
+}
+.icofont-arrow-down:before {
+    content: map.get($icofont-map, 'arrow-down');
+}

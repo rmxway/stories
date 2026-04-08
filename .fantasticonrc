@@ -1,0 +1,16 @@
+module.exports = {
+	inputDir: './fantasticon/icons',
+	outputDir: './public/assets/fonts/icofont',
+	name: 'icofont',
+	prefix: 'icofont',
+	fontTypes: ['ttf', 'woff', 'woff2'],
+	assetTypes: ['scss', 'json', 'html', 'css'],
+	fontsUrl: './',
+	normalize: true,
+	templates: {
+		scss: './fantasticon/scss.hbs',
+		html: './fantasticon/html.hbs',
+		css: './fantasticon/css.hbs',
+	},
+	getIconId: ({ basename }) => [basename].join('_'),
+};

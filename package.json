@@ -4,6 +4,7 @@
 	"version": "0.0.0",
 	"scripts": {
 		"dev": "next dev",
+		"icofont": "mkdir -p public/assets/fonts/icofont && fantasticon && printf '\\n' >> public/assets/fonts/icofont/icofont.json",
 		"build": "next build",
 		"start": "next start",
 		"lint": "eslint .",
@@ -39,6 +40,7 @@
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"eslint-plugin-simple-import-sort": "^12.1.1",
 		"eslint-plugin-unused-imports": "^4.1.4",
+		"fantasticon": "^4.1.0",
 		"prettier": "^3.4.2",
 		"typescript": "^5.6.0"
 	},

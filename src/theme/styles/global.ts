@@ -1,3 +1,5 @@
+import '@public/assets/fonts/icofont/icofont.scss';
+
 import { createGlobalStyle } from 'styled-components';
 
 import { base, reset } from './';
