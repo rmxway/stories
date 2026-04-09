@@ -5,9 +5,11 @@ export const Root = styled.main`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	padding: 2rem;
 	text-align: center;
+	min-height: 100vh;
+	overflow: hidden;
 `;
 
 export const Lead = styled.p`

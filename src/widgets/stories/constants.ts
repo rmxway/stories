@@ -1,5 +1,8 @@
 export const STORIES_STORAGE_KEY = 'stories:seenIds';
 
+/** Shared layout id (Framer Motion) между превью и оболочкой просмотра сторис. */
+export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
+
 export const STORY_DURATION_SEC = 5;
 
 export const STORIES = [

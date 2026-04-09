@@ -5,7 +5,7 @@ import { type ComponentProps, useState } from 'react';
 
 import { Icon } from '@/shared/ui';
 
-import type { StoryItem } from '../constants';
+import { STORIES_SHELL_LAYOUT_ID, type StoryItem } from '../constants';
 import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
 import {
@@ -62,6 +62,9 @@ export function StoriesViewer({
 	const story = stories[activeIndex];
 	const [leftTapPressed, setLeftTapPressed] = useState(false);
 	const [rightTapPressed, setRightTapPressed] = useState(false);
+	const [shellLayoutId, setShellLayoutId] = useState<
+		typeof STORIES_SHELL_LAYOUT_ID | undefined
+	>(STORIES_SHELL_LAYOUT_ID);
 
 	const {
 		dismissDragY,
@@ -77,6 +80,7 @@ export function StoriesViewer({
 		onClose,
 		onTapPrevious,
 		onTapNext,
+		onSwipeDismissCommit: () => setShellLayoutId(undefined),
 	});
 
 	if (!story) {
@@ -102,8 +106,12 @@ export function StoriesViewer({
 				style={{ opacity: dimmerOpacity }}
 			/>
 			<MotionStoryShell
-				layoutId="stories-shell"
-				transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+				layoutId={shellLayoutId}
+				transition={{
+					type: 'spring',
+					damping: 26,
+					stiffness: 220,
+				}}
 				style={{ y: dismissDragY, scale: shellScale }}
 				{...shellPointerProps}
 			>

@@ -48,9 +48,7 @@ const base = css`
 			overflow-y: scroll;
 			font-family: ${theme.fonts.base};
 			display: block;
-			padding-top: 100px;
 			line-height: 1.25;
-			padding-bottom: 50px;
 			min-width: 320px;
 			color: #fff;
 			background-color: ${theme.colors.gray.$9};

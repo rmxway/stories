@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 
-import type { StoryItem } from '../constants';
+import { STORIES_SHELL_LAYOUT_ID, type StoryItem } from '../constants';
 import { StoryRingSvg } from './StoryRingSvg';
 import {
 	PreviewButton,
@@ -33,7 +33,7 @@ export const StoriesPreview = forwardRef<
 			<MotionPreviewButton
 				ref={ref}
 				type="button"
-				layoutId="stories-shell"
+				layoutId={STORIES_SHELL_LAYOUT_ID}
 				aria-label="Открыть сторисы"
 				onClick={onOpen}
 				whileTap={{ scale: 0.96 }}

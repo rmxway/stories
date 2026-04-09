@@ -75,7 +75,7 @@ export const StoryShell = styled.div`
 	z-index: 1;
 	height: 100%;
 	aspect-ratio: 1/1.8;
-	max-height: 100vh;
+	max-height: 100dvh;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;

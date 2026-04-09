@@ -33,20 +33,9 @@ export function StoriesWidget() {
 	}, []);
 
 	useEffect(() => {
-		if (!isOpen) {
-			return;
-		}
-		const prev = document.body.style.overflow;
-		document.body.style.overflow = 'hidden';
-		return () => {
-			document.body.style.overflow = prev;
-		};
-	}, [isOpen]);
-
-	useEffect(() => {
 		if (wasOpenRef.current && !isOpen) {
 			queueMicrotask(() => {
-				previewTriggerRef.current?.focus();
+				previewTriggerRef.current?.focus({ preventScroll: true });
 			});
 		}
 		wasOpenRef.current = isOpen;

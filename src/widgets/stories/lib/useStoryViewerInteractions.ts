@@ -50,6 +50,11 @@ type UseStoryViewerInteractionsArgs = {
 	onClose: () => void;
 	onTapPrevious: () => void;
 	onTapNext: () => void;
+	/**
+	 * Вызывается синхронно при подтверждённом закрытии свайпом вниз, до анимации вылета и onClose.
+	 * Нужен, чтобы снять shared layout (layoutId) с оболочки и не конфликтовать с ручным y/scale.
+	 */
+	onSwipeDismissCommit?: () => void;
 };
 
 export function useStoryViewerInteractions({
@@ -57,6 +62,7 @@ export function useStoryViewerInteractions({
 	onClose,
 	onTapPrevious,
 	onTapNext,
+	onSwipeDismissCommit,
 }: UseStoryViewerInteractionsArgs) {
 	const [holdPaused, setHoldPaused] = useState(false);
 	const suppressTapClickRef = useRef<boolean>(false);
@@ -101,14 +107,11 @@ export function useStoryViewerInteractions({
 			const spring = reducedMotion
 				? {
 						type: 'tween' as const,
-						duration: 0.18,
-						ease: 'easeOut' as const,
+						duration: 0.15,
 					}
 				: {
-						type: 'spring' as const,
-						stiffness: 520,
-						damping: 38,
-						mass: 0.85,
+						type: 'tween' as const,
+						duration: 0.2,
 					};
 			return animate(dismissDragY, target, {
 				...spring,
@@ -130,12 +133,13 @@ export function useStoryViewerInteractions({
 						? window.innerHeight + 80
 						: y + 400;
 				suppressTapClickRef.current = true;
+				onSwipeDismissCommit?.();
 				void animateYTo(exitY, onClose);
 			} else {
 				void animateYTo(0);
 			}
 		},
-		[animateYTo, dismissDragY, onClose],
+		[animateYTo, dismissDragY, onClose, onSwipeDismissCommit],
 	);
 
 	const beginHold = useCallback(() => {
