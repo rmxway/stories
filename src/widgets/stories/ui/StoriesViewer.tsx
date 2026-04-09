@@ -1,52 +1,28 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import {
-	type ComponentProps,
-	type MouseEvent,
-	type PointerEvent,
-	type RefObject,
-	useCallback,
-	useRef,
-	useState,
-} from 'react';
+import { type ComponentProps, useState } from 'react';
 
 import { Icon } from '@/shared/ui';
 
 import type { StoryItem } from '../constants';
+import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
 import {
 	CloseButton,
 	Overlay,
+	OverlayBackdrop,
 	StoryImage,
 	StoryImageInner,
 	StoryImageWrap,
 	StoryShell,
 	StoryTapZone,
+	VisuallyHidden,
 } from './styled';
 
 const MotionOverlay = motion(Overlay);
+const MotionOverlayBackdrop = motion(OverlayBackdrop);
 const MotionStoryShell = motion(StoryShell);
-
-/** После такого удержания отпускание не должно вызывать переход по клику на зонах влево/вправо */
-const HOLD_SUPPRESS_CLICK_MS = 200;
-
-const getNow = (): number =>
-	typeof performance !== 'undefined' ? performance.now() : Date.now();
-
-function runStoryTapZoneIfNotSuppressed(
-	e: MouseEvent<HTMLButtonElement>,
-	suppressRef: RefObject<boolean | null>,
-	action: () => void,
-): void {
-	if (suppressRef.current) {
-		suppressRef.current = false;
-		e.preventDefault();
-		e.stopPropagation();
-		return;
-	}
-	action();
-}
 
 type StoryTapZonePointerPressProps = Pick<
 	ComponentProps<typeof StoryTapZone>,
@@ -67,6 +43,7 @@ function storyTapZonePressPointerProps(
 type StoriesViewerProps = {
 	stories: readonly StoryItem[];
 	activeIndex: number;
+	segmentReplayToken: number;
 	onClose: () => void;
 	onProgressComplete: (segmentIndex: number) => void;
 	onTapPrevious: () => void;
@@ -76,57 +53,31 @@ type StoriesViewerProps = {
 export function StoriesViewer({
 	stories,
 	activeIndex,
+	segmentReplayToken,
 	onClose,
 	onProgressComplete,
 	onTapPrevious,
 	onTapNext,
 }: StoriesViewerProps) {
 	const story = stories[activeIndex];
-	const [holdPaused, setHoldPaused] = useState(false);
 	const [leftTapPressed, setLeftTapPressed] = useState(false);
 	const [rightTapPressed, setRightTapPressed] = useState(false);
-	const holdStartedAtRef = useRef(0);
-	const suppressTapClickRef = useRef(false);
 
-	const handlePointerDownShell = useCallback(
-		(e: PointerEvent<HTMLDivElement>) => {
-			suppressTapClickRef.current = false;
-			holdStartedAtRef.current = getNow();
-			setHoldPaused(true);
-			/* Не захватываем указатель, если нажали на кнопку зоны тапа — иначе pointerup
-			 * уйдёт на shell и click на кнопке не сработает. */
-			const t = e.target;
-			if (t instanceof Element && t.closest('button')) {
-				return;
-			}
-			e.currentTarget.setPointerCapture(e.pointerId);
-		},
-		[],
-	);
-
-	const handlePointerEndShell = useCallback(() => {
-		const elapsed = getNow() - holdStartedAtRef.current;
-		if (elapsed >= HOLD_SUPPRESS_CLICK_MS) {
-			suppressTapClickRef.current = true;
-		}
-		setHoldPaused(false);
-	}, []);
-
-	const handleTapPreviousGuarded = useCallback(
-		(e: MouseEvent<HTMLButtonElement>) =>
-			runStoryTapZoneIfNotSuppressed(
-				e,
-				suppressTapClickRef,
-				onTapPrevious,
-			),
-		[onTapPrevious],
-	);
-
-	const handleTapNextGuarded = useCallback(
-		(e: MouseEvent<HTMLButtonElement>) =>
-			runStoryTapZoneIfNotSuppressed(e, suppressTapClickRef, onTapNext),
-		[onTapNext],
-	);
+	const {
+		dismissDragY,
+		shellScale,
+		dimmerOpacity,
+		holdPaused,
+		shellPointerProps,
+		storyWrapPointerProps,
+		onTapPreviousGuarded,
+		onTapNextGuarded,
+	} = useStoryViewerInteractions({
+		activeIndex,
+		onClose,
+		onTapPrevious,
+		onTapNext,
+	});
 
 	if (!story) {
 		return null;
@@ -134,17 +85,27 @@ export function StoriesViewer({
 
 	return (
 		<MotionOverlay
+			role="dialog"
+			aria-modal="true"
+			aria-label="Сторис"
+			aria-describedby="stories-viewer-desc"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
 			transition={{ duration: 0.2 }}
 		>
+			<VisuallyHidden id="stories-viewer-desc">
+				Листайте стрелками влево и вправо. Escape закрывает окно.
+			</VisuallyHidden>
+			<MotionOverlayBackdrop
+				aria-hidden
+				style={{ opacity: dimmerOpacity }}
+			/>
 			<MotionStoryShell
 				layoutId="stories-shell"
 				transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-				onPointerDown={handlePointerDownShell}
-				onPointerUp={handlePointerEndShell}
-				onPointerCancel={handlePointerEndShell}
+				style={{ y: dismissDragY, scale: shellScale }}
+				{...shellPointerProps}
 			>
 				<CloseButton
 					type="button"
@@ -156,10 +117,11 @@ export function StoriesViewer({
 				<StoriesProgress
 					count={stories.length}
 					activeIndex={activeIndex}
+					segmentReplayToken={segmentReplayToken}
 					holdPaused={holdPaused}
 					onSegmentComplete={onProgressComplete}
 				/>
-				<StoryImageWrap>
+				<StoryImageWrap {...storyWrapPointerProps}>
 					<StoryImageInner>
 						<StoryImage src={story.src} alt="" />
 						<StoryTapZone
@@ -170,7 +132,7 @@ export function StoriesViewer({
 							{...storyTapZonePressPointerProps(
 								setLeftTapPressed,
 							)}
-							onClick={handleTapPreviousGuarded}
+							onClick={onTapPreviousGuarded}
 						/>
 						<StoryTapZone
 							type="button"
@@ -180,7 +142,7 @@ export function StoriesViewer({
 							{...storyTapZonePressPointerProps(
 								setRightTapPressed,
 							)}
-							onClick={handleTapNextGuarded}
+							onClick={onTapNextGuarded}
 						/>
 					</StoryImageInner>
 				</StoryImageWrap>

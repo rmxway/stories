@@ -59,18 +59,41 @@ export const Overlay = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: rgba(0, 0, 0, 0.92);
 	padding: 0;
+	background: transparent;
+`;
+
+export const OverlayBackdrop = styled.div`
+	position: absolute;
+	inset: 0;
+	background: #000;
+	pointer-events: auto;
 `;
 
 export const StoryShell = styled.div`
 	position: relative;
+	z-index: 1;
 	height: 100%;
 	aspect-ratio: 1/1.8;
 	max-height: 100vh;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+`;
+
+export const VisuallyHidden = styled.span`
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
 `;
 
 export const CloseButton = styled.button`
@@ -98,6 +121,9 @@ export const ProgressRow = styled.div`
 	gap: 4px;
 	padding: 12px 12px 8px;
 	flex-shrink: 0;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
 `;
 
 export const ProgressTrack = styled.div`
@@ -128,6 +154,10 @@ export const StoryImageWrap = styled.div`
 	flex-direction: column;
 	width: 100%;
 	padding: 0 12px 12px;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
 `;
 
 export const StoryImageInner = styled.div`
@@ -154,7 +184,7 @@ export const StoryTapZone = styled.button<{
 	z-index: 1;
 	overflow: hidden;
 	-webkit-tap-highlight-color: transparent;
-	touch-action: manipulation;
+	touch-action: none;
 
 	${({ $side }) => ($side === 'left' ? 'left: 0;' : 'right: 0;')}
 

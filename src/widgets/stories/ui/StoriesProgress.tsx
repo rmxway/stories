@@ -15,12 +15,14 @@ const MotionFill = motion(ProgressFill);
 
 type ActiveStoryProgressFillProps = {
 	segmentIndex: number;
+	segmentReplayToken: number;
 	holdPaused: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
 
 function ActiveStoryProgressFill({
 	segmentIndex,
+	segmentReplayToken,
 	holdPaused,
 	onSegmentComplete,
 }: ActiveStoryProgressFillProps) {
@@ -40,7 +42,7 @@ function ActiveStoryProgressFill({
 		return () => {
 			controlsRef.current?.stop();
 		};
-	}, [segmentIndex, scaleX, onSegmentComplete]);
+	}, [segmentIndex, segmentReplayToken, scaleX, onSegmentComplete]);
 
 	useEffect(() => {
 		const c = controlsRef.current;
@@ -60,6 +62,7 @@ function ActiveStoryProgressFill({
 type StoriesProgressProps = {
 	count: number;
 	activeIndex: number;
+	segmentReplayToken: number;
 	holdPaused: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
@@ -67,6 +70,7 @@ type StoriesProgressProps = {
 export function StoriesProgress({
 	count,
 	activeIndex,
+	segmentReplayToken,
 	holdPaused,
 	onSegmentComplete,
 }: StoriesProgressProps) {
@@ -78,6 +82,7 @@ export function StoriesProgress({
 					{index === activeIndex ? (
 						<ActiveStoryProgressFill
 							segmentIndex={index}
+							segmentReplayToken={segmentReplayToken}
 							holdPaused={holdPaused}
 							onSegmentComplete={onSegmentComplete}
 						/>

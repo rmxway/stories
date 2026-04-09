@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { forwardRef } from 'react';
 
 import type { StoryItem } from '../constants';
 import { StoryRingSvg } from './StoryRingSvg';
@@ -21,16 +22,16 @@ type StoriesPreviewProps = {
 	onOpen: () => void;
 };
 
-export function StoriesPreview({
-	stories,
-	seenIds,
-	onOpen,
-}: StoriesPreviewProps) {
+export const StoriesPreview = forwardRef<
+	HTMLButtonElement,
+	StoriesPreviewProps
+>(function StoriesPreview({ stories, seenIds, onOpen }, ref) {
 	const seenByIndex = stories.map((s) => seenIds.includes(s.id));
 
 	return (
 		<PreviewWrap>
 			<MotionPreviewButton
+				ref={ref}
 				type="button"
 				layoutId="stories-shell"
 				aria-label="Открыть сторисы"
@@ -49,4 +50,4 @@ export function StoriesPreview({
 			</MotionPreviewButton>
 		</PreviewWrap>
 	);
-}
+});
