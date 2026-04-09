@@ -1,11 +1,15 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { type ComponentProps, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { type ComponentProps, useEffect, useState } from 'react';
 
-import { Icon } from '@/shared/ui';
+import { Flexbox, Icon, Space } from '@/shared/ui';
 
-import { STORIES_SHELL_LAYOUT_ID, type StoryItem } from '../constants';
+import {
+	STORIES_SHELL_LAYOUT_ID,
+	STORY_INFO_HIDE_DELAY_MS,
+	type StoryItem,
+} from '../constants';
 import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
 import {
@@ -15,14 +19,15 @@ import {
 	StoryImage,
 	StoryImageInner,
 	StoryImageWrap,
+	StoryInfo,
 	StoryShell,
 	StoryTapZone,
 	VisuallyHidden,
 } from './styled';
 
-const MotionOverlay = motion(Overlay);
-const MotionOverlayBackdrop = motion(OverlayBackdrop);
-const MotionStoryShell = motion(StoryShell);
+const MotionOverlay = motion.create(Overlay);
+const MotionOverlayBackdrop = motion.create(OverlayBackdrop);
+const MotionStoryShell = motion.create(StoryShell);
 
 type StoryTapZonePointerPressProps = Pick<
 	ComponentProps<typeof StoryTapZone>,
@@ -62,15 +67,14 @@ export function StoriesViewer({
 	const story = stories[activeIndex];
 	const [leftTapPressed, setLeftTapPressed] = useState(false);
 	const [rightTapPressed, setRightTapPressed] = useState(false);
-	const [shellLayoutId, setShellLayoutId] = useState<
-		typeof STORIES_SHELL_LAYOUT_ID | undefined
-	>(STORIES_SHELL_LAYOUT_ID);
+	const [isStoryInfoVisible, setIsStoryInfoVisible] = useState(true);
 
 	const {
 		dismissDragY,
 		shellScale,
 		dimmerOpacity,
 		holdPaused,
+		isVerticalDismissActive,
 		shellPointerProps,
 		storyWrapPointerProps,
 		onTapPreviousGuarded,
@@ -80,8 +84,22 @@ export function StoriesViewer({
 		onClose,
 		onTapPrevious,
 		onTapNext,
-		onSwipeDismissCommit: () => setShellLayoutId(undefined),
 	});
+
+	useEffect(() => {
+		if (!holdPaused || isVerticalDismissActive) {
+			setIsStoryInfoVisible(true);
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setIsStoryInfoVisible(false);
+		}, STORY_INFO_HIDE_DELAY_MS);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [activeIndex, holdPaused, isVerticalDismissActive]);
 
 	if (!story) {
 		return null;
@@ -106,22 +124,15 @@ export function StoriesViewer({
 				style={{ opacity: dimmerOpacity }}
 			/>
 			<MotionStoryShell
-				layoutId={shellLayoutId}
+				layoutId={STORIES_SHELL_LAYOUT_ID}
 				transition={{
 					type: 'spring',
-					damping: 26,
-					stiffness: 220,
+					damping: 30,
+					stiffness: 280,
 				}}
 				style={{ y: dismissDragY, scale: shellScale }}
 				{...shellPointerProps}
 			>
-				<CloseButton
-					type="button"
-					aria-label="Закрыть"
-					onClick={onClose}
-				>
-					<Icon icon="times-small" size={50} />
-				</CloseButton>
 				<StoriesProgress
 					count={stories.length}
 					activeIndex={activeIndex}
@@ -129,6 +140,36 @@ export function StoriesViewer({
 					holdPaused={holdPaused}
 					onSegmentComplete={onProgressComplete}
 				/>
+				<AnimatePresence>
+					{isStoryInfoVisible && (
+						<StoryInfo
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.2 }}
+						>
+							<Flexbox $gap={10} $align="center" $nowrap>
+								<img src="/img/ava.jpg" alt="" />
+								<Flexbox $direction="column">
+									<span>
+										<strong>Ваша история</strong> &bull;{' '}
+										{activeIndex + 1}/{stories.length}
+									</span>
+									<span>{story.time}</span>
+								</Flexbox>
+								<Space />
+								<CloseButton
+									type="button"
+									aria-label="Закрыть"
+									onClick={onClose}
+								>
+									<Icon icon="times-small" size={50} />
+								</CloseButton>
+							</Flexbox>
+						</StoryInfo>
+					)}
+				</AnimatePresence>
+
 				<StoryImageWrap {...storyWrapPointerProps}>
 					<StoryImageInner>
 						<StoryImage src={story.src} alt="" />

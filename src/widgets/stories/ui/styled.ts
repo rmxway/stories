@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import styled, { css } from 'styled-components';
 
 export const PreviewWrap = styled.div`
@@ -79,6 +80,7 @@ export const StoryShell = styled.div`
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+	padding: 10px 0 50px;
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -97,19 +99,19 @@ export const VisuallyHidden = styled.span`
 `;
 
 export const CloseButton = styled.button`
-	position: absolute;
-	top: 10px;
-	right: 0;
-	z-index: 3;
-	padding: 10px;
+	width: 40px;
+	height: 40px;
+	position: relative;
+	z-index: 10;
 	border: none;
 	background: transparent;
-	color: rgba(255, 255, 255, 0.9);
+	color: rgba(255, 255, 255, 0.8);
 	cursor: pointer;
-	border-radius: 50%;
 	display: flex;
+	appearance: none;
 	align-items: center;
 	justify-content: center;
+	pointer-events: auto;
 
 	&:hover {
 		color: #fff;
@@ -117,10 +119,15 @@ export const CloseButton = styled.button`
 `;
 
 export const ProgressRow = styled.div`
+	position: absolute;
+	top: 3px;
+	left: 5px;
+	right: 5px;
 	display: flex;
 	gap: 4px;
-	padding: 12px 12px 8px;
+	padding: 12px 0 8px;
 	flex-shrink: 0;
+	z-index: 5;
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -147,13 +154,74 @@ export const ProgressFillComplete = styled(ProgressFill)`
 	transform: scaleX(1);
 `;
 
+export const StoryInfo = styled(motion.div)`
+	position: absolute;
+	top: 10px;
+	left: 0;
+	right: 0;
+	height: 20%;	
+	gap: 8px;
+	padding: 15px 5px 15px 12px;
+	z-index: 3;
+	pointer-events: none;	
+
+	&:after {
+		content: '';
+		z-index: -1;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		inset: 0;
+		background: linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0.65) 2%,
+			rgba(0, 0, 0, 0.5) 5%,
+			transparent 90%
+		);
+	}
+
+	img {
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		object-fit: cover;
+		display: block;
+		user-select: none;
+		pointer-events: none;
+	}
+
+	strong {
+		font-size: 16px;
+		font-weight: 600;
+	}
+
+	span {
+		color: #fff;
+		font-size: 12px;
+		line-height: 1.25;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	time {
+		color: rgba(255, 255, 255, 0.82);
+		font-size: 13px;
+		font-weight: 500;
+		line-height: 1.2;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+`;
+
 export const StoryImageWrap = styled.div`
 	flex: 1;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	padding: 0 12px 12px;
+	padding: 0;
 	touch-action: none;
 	user-select: none;
 	-webkit-user-select: none;

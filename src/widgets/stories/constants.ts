@@ -4,11 +4,12 @@ export const STORIES_STORAGE_KEY = 'stories:seenIds';
 export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 
 export const STORY_DURATION_SEC = 5;
+export const STORY_INFO_HIDE_DELAY_MS = 300;
 
 export const STORIES = [
-	{ id: '1', src: '/img/stories/1.jpg' },
-	{ id: '2', src: '/img/stories/2.jpg' },
-	{ id: '3', src: '/img/stories/3.jpg' },
+	{ id: '1', src: '/img/stories/1.jpg', time: '8 апр. 2026 в 13:05' },
+	{ id: '2', src: '/img/stories/2.jpg', time: '8 апр. 2026 в 13:07' },
+	{ id: '3', src: '/img/stories/3.jpg', time: '8 апр. 2026 в 13:12' },
 ] as const;
 
 export type StoryItem = (typeof STORIES)[number];

@@ -1,35 +1,39 @@
 'use client';
 
 import { AnimatePresence, LayoutGroup } from 'framer-motion';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react';
 
 import { STORIES } from '../constants';
+import { isEditableTarget } from '../lib/isEditableTarget';
 import { loadSeenIds, saveSeenIds } from '../lib/storiesStorage';
+import {
+	getInitialOpenIndex,
+	resolveStoriesProgressComplete,
+} from '../lib/storiesWidgetNavigation';
 import { StoriesPreview } from './StoriesPreview';
 import { StoriesViewer } from './StoriesViewer';
 
-function isEditableTarget(target: EventTarget | null): boolean {
-	if (!(target instanceof HTMLElement)) {
-		return false;
-	}
-	return Boolean(
-		target.closest(
-			'input, textarea, select, [contenteditable="true"], [contenteditable=""]',
-		),
-	);
-}
-
 export function StoriesWidget() {
 	const [seenIds, setSeenIds] = useState<string[]>([]);
+	const [seenStorageLoaded, setSeenStorageLoaded] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(0);
 	const [segmentReplayToken, setSegmentReplayToken] = useState(0);
 	const handleCloseRef = useRef<() => void>(() => undefined);
 	const previewTriggerRef = useRef<HTMLButtonElement>(null);
 	const wasOpenRef = useRef(false);
+	const activeIndexRef = useRef(activeIndex);
+	activeIndexRef.current = activeIndex;
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		setSeenIds(loadSeenIds());
+		setSeenStorageLoaded(true);
 	}, []);
 
 	useEffect(() => {
@@ -53,8 +57,7 @@ export function StoriesWidget() {
 	}, []);
 
 	const handleOpen = useCallback(() => {
-		const firstUnseen = STORIES.findIndex((s) => !seenIds.includes(s.id));
-		setActiveIndex(firstUnseen === -1 ? 0 : firstUnseen);
+		setActiveIndex(getInitialOpenIndex(STORIES, seenIds));
 		setIsOpen(true);
 	}, [seenIds]);
 
@@ -98,20 +101,23 @@ export function StoriesWidget() {
 
 	const handleProgressComplete = useCallback(
 		(completedForIndex: number) => {
-			setActiveIndex((current) => {
-				if (completedForIndex !== current) {
-					return current;
-				}
-				const cur = STORIES[current];
-				if (cur) {
-					markSeen(cur.id);
-				}
-				if (current < STORIES.length - 1) {
-					return current + 1;
-				}
-				queueMicrotask(() => setIsOpen(false));
-				return current;
-			});
+			const current = activeIndexRef.current;
+			const r = resolveStoriesProgressComplete(
+				completedForIndex,
+				current,
+				STORIES,
+			);
+			if (r.type === 'unchanged') {
+				return;
+			}
+			if (r.storyIdToMark !== undefined) {
+				markSeen(r.storyIdToMark);
+			}
+			if (r.type === 'next') {
+				setActiveIndex(r.nextIndex);
+				return;
+			}
+			setIsOpen(false);
 		},
 		[markSeen],
 	);
@@ -150,6 +156,7 @@ export function StoriesWidget() {
 					ref={previewTriggerRef}
 					stories={STORIES}
 					seenIds={seenIds}
+					seenStorageLoaded={seenStorageLoaded}
 					onOpen={handleOpen}
 				/>
 			)}

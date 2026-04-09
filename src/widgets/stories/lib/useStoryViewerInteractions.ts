@@ -50,11 +50,6 @@ type UseStoryViewerInteractionsArgs = {
 	onClose: () => void;
 	onTapPrevious: () => void;
 	onTapNext: () => void;
-	/**
-	 * Вызывается синхронно при подтверждённом закрытии свайпом вниз, до анимации вылета и onClose.
-	 * Нужен, чтобы снять shared layout (layoutId) с оболочки и не конфликтовать с ручным y/scale.
-	 */
-	onSwipeDismissCommit?: () => void;
 };
 
 export function useStoryViewerInteractions({
@@ -62,9 +57,10 @@ export function useStoryViewerInteractions({
 	onClose,
 	onTapPrevious,
 	onTapNext,
-	onSwipeDismissCommit,
 }: UseStoryViewerInteractionsArgs) {
 	const [holdPaused, setHoldPaused] = useState(false);
+	const [isVerticalDismissActive, setIsVerticalDismissActive] =
+		useState(false);
 	const suppressTapClickRef = useRef<boolean>(false);
 	const holdStartedAtRef = useRef(0);
 
@@ -84,6 +80,7 @@ export function useStoryViewerInteractions({
 
 	useEffect(() => {
 		dismissDragY.set(0);
+		setIsVerticalDismissActive(false);
 	}, [activeIndex, dismissDragY]);
 
 	const modeRef = useRef<GestureMode>('idle');
@@ -133,13 +130,12 @@ export function useStoryViewerInteractions({
 						? window.innerHeight + 80
 						: y + 400;
 				suppressTapClickRef.current = true;
-				onSwipeDismissCommit?.();
 				void animateYTo(exitY, onClose);
 			} else {
 				void animateYTo(0);
 			}
 		},
-		[animateYTo, dismissDragY, onClose, onSwipeDismissCommit],
+		[animateYTo, dismissDragY, onClose],
 	);
 
 	const beginHold = useCallback(() => {
@@ -216,6 +212,7 @@ export function useStoryViewerInteractions({
 					Math.abs(dy) > Math.abs(dx) * 1.05
 				) {
 					modeRef.current = 'verticalDismiss';
+					setIsVerticalDismissActive(true);
 					e.currentTarget.setPointerCapture(e.pointerId);
 					suppressTapClickRef.current = true;
 				} else if (
@@ -269,6 +266,7 @@ export function useStoryViewerInteractions({
 			}
 
 			modeRef.current = 'idle';
+			setIsVerticalDismissActive(false);
 			endHoldAfterRelease();
 		},
 		[endHoldAfterRelease, finishDismissOrSnap],
@@ -292,6 +290,7 @@ export function useStoryViewerInteractions({
 				void animateYTo(0);
 			}
 			modeRef.current = 'idle';
+			setIsVerticalDismissActive(false);
 			endHoldCancel();
 		},
 		[animateYTo, endHoldCancel],
@@ -322,6 +321,7 @@ export function useStoryViewerInteractions({
 		shellScale,
 		dimmerOpacity,
 		holdPaused,
+		isVerticalDismissActive,
 		shellPointerProps: {
 			onPointerDown: onShellPointerDown,
 			onPointerUp: onShellPointerEnd,

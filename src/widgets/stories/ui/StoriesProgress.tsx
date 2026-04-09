@@ -11,7 +11,7 @@ import {
 	ProgressTrack,
 } from './styled';
 
-const MotionFill = motion(ProgressFill);
+const MotionFill = motion.create(ProgressFill);
 
 type ActiveStoryProgressFillProps = {
 	segmentIndex: number;

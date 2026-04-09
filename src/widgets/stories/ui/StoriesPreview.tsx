@@ -14,18 +14,23 @@ import {
 	StoryRingSvgWrap,
 } from './styled';
 
-const MotionPreviewButton = motion(PreviewButton);
+const MotionPreviewButton = motion.create(PreviewButton);
 
 type StoriesPreviewProps = {
 	stories: readonly StoryItem[];
 	seenIds: string[];
+	/** После чтения localStorage: непросмотренные — градиент; до — все сегменты серые. */
+	seenStorageLoaded: boolean;
 	onOpen: () => void;
 };
 
 export const StoriesPreview = forwardRef<
 	HTMLButtonElement,
 	StoriesPreviewProps
->(function StoriesPreview({ stories, seenIds, onOpen }, ref) {
+>(function StoriesPreview(
+	{ stories, seenIds, seenStorageLoaded, onOpen },
+	ref,
+) {
 	const seenByIndex = stories.map((s) => seenIds.includes(s.id));
 
 	return (
@@ -41,7 +46,10 @@ export const StoriesPreview = forwardRef<
 			>
 				<StoryRingFrame>
 					<StoryRingSvgWrap>
-						<StoryRingSvg seenByIndex={seenByIndex} />
+						<StoryRingSvg
+							seenByIndex={seenByIndex}
+							seenStorageLoaded={seenStorageLoaded}
+						/>
 					</StoryRingSvgWrap>
 					<StoryRingInner>
 						<StoryAvatar src="/img/ava.jpg" alt="" />
