@@ -6,6 +6,9 @@ export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 export const STORY_DURATION_SEC = 5;
 export const STORY_INFO_HIDE_DELAY_MS = 300;
 
+/** Аватар в превью и шапке просмотра сторис. */
+export const STORY_AVATAR_SRC = '/img/ava.jpg' as const;
+
 export const STORIES = [
 	{ id: '1', src: '/img/stories/1.jpg', time: '8 апр. 2026 в 13:05' },
 	{ id: '2', src: '/img/stories/2.jpg', time: '8 апр. 2026 в 13:07' },

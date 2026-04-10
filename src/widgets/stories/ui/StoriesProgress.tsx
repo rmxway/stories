@@ -17,6 +17,7 @@ type ActiveStoryProgressFillProps = {
 	segmentIndex: number;
 	segmentReplayToken: number;
 	holdPaused: boolean;
+	isImageLoaded: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
 
@@ -24,6 +25,7 @@ function ActiveStoryProgressFill({
 	segmentIndex,
 	segmentReplayToken,
 	holdPaused,
+	isImageLoaded,
 	onSegmentComplete,
 }: ActiveStoryProgressFillProps) {
 	const scaleX = useMotionValue(0);
@@ -49,29 +51,34 @@ function ActiveStoryProgressFill({
 		if (!c) {
 			return;
 		}
-		if (holdPaused) {
+		const paused = holdPaused || !isImageLoaded;
+		if (paused) {
 			c.pause();
 		} else {
 			c.play();
 		}
-	}, [holdPaused]);
+	}, [holdPaused, isImageLoaded]);
 
 	return <MotionFill style={{ scaleX }} />;
 }
 
-type StoriesProgressProps = {
+type StoriesProgressOwnProps = {
 	count: number;
 	activeIndex: number;
 	segmentReplayToken: number;
 	holdPaused: boolean;
+	isImageLoaded: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
 
-export function StoriesProgress({
+export type StoriesProgressProps = StoriesProgressOwnProps;
+
+export const StoriesProgress = function StoriesProgress({
 	count,
 	activeIndex,
 	segmentReplayToken,
 	holdPaused,
+	isImageLoaded,
 	onSegmentComplete,
 }: StoriesProgressProps) {
 	return (
@@ -84,6 +91,7 @@ export function StoriesProgress({
 							segmentIndex={index}
 							segmentReplayToken={segmentReplayToken}
 							holdPaused={holdPaused}
+							isImageLoaded={isImageLoaded}
 							onSegmentComplete={onSegmentComplete}
 						/>
 					) : null}
@@ -91,4 +99,4 @@ export function StoriesProgress({
 			))}
 		</ProgressRow>
 	);
-}
+};

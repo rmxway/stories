@@ -3,31 +3,42 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { type ComponentProps, useEffect, useState } from 'react';
 
+import { FadeInOutVariant, ImageFadeVariant } from '@/shared/lib/framer-motion';
 import { Flexbox, Icon, Space } from '@/shared/ui';
 
 import {
 	STORIES_SHELL_LAYOUT_ID,
+	STORY_AVATAR_SRC,
 	STORY_INFO_HIDE_DELAY_MS,
 	type StoryItem,
 } from '../constants';
+import {
+	useProgressiveAvatarPhase,
+	useStorySlidePhase,
+} from '../lib/useStoryImagePreload';
 import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
 import {
 	CloseButton,
 	Overlay,
 	OverlayBackdrop,
-	StoryImage,
+	ProgressiveAvatarImg,
+	ShimmerOverlay,
+	StoryBlurFallback,
 	StoryImageInner,
+	StoryImageMain,
 	StoryImageWrap,
 	StoryInfo,
+	StoryInfoAvatarWrap,
 	StoryShell,
+	StorySkeleton,
+	StorySkeletonMotionWrap,
 	StoryTapZone,
 	VisuallyHidden,
 } from './styled';
 
 const MotionOverlay = motion.create(Overlay);
 const MotionOverlayBackdrop = motion.create(OverlayBackdrop);
-const MotionStoryShell = motion.create(StoryShell);
 
 type StoryTapZonePointerPressProps = Pick<
 	ComponentProps<typeof StoryTapZone>,
@@ -69,6 +80,15 @@ export function StoriesViewer({
 	const [rightTapPressed, setRightTapPressed] = useState(false);
 	const [isStoryInfoVisible, setIsStoryInfoVisible] = useState(true);
 
+	const { phase, onLoad, onError, isContentReady, mainImgRef } =
+		useStorySlidePhase(story?.src ?? '');
+	const {
+		sharp,
+		onLoad: onLoadAvatar,
+		onError: onErrorAvatar,
+		imgRef: avatarImgRef,
+	} = useProgressiveAvatarPhase(STORY_AVATAR_SRC);
+
 	const {
 		dismissDragY,
 		shellScale,
@@ -85,6 +105,10 @@ export function StoriesViewer({
 		onTapPrevious,
 		onTapNext,
 	});
+
+	useEffect(() => {
+		console.log(isStoryInfoVisible);
+	}, [isStoryInfoVisible]);
 
 	useEffect(() => {
 		if (!holdPaused || isVerticalDismissActive) {
@@ -111,10 +135,10 @@ export function StoriesViewer({
 			aria-modal="true"
 			aria-label="Сторис"
 			aria-describedby="stories-viewer-desc"
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }}
-			transition={{ duration: 0.2 }}
+			variants={FadeInOutVariant}
+			initial="hidden"
+			animate="visible"
+			exit="hidden"
 		>
 			<VisuallyHidden id="stories-viewer-desc">
 				Листайте стрелками влево и вправо. Escape закрывает окно.
@@ -123,7 +147,7 @@ export function StoriesViewer({
 				aria-hidden
 				style={{ opacity: dimmerOpacity }}
 			/>
-			<MotionStoryShell
+			<StoryShell
 				layoutId={STORIES_SHELL_LAYOUT_ID}
 				transition={{
 					type: 'spring',
@@ -133,46 +157,79 @@ export function StoriesViewer({
 				style={{ y: dismissDragY, scale: shellScale }}
 				{...shellPointerProps}
 			>
-				<StoriesProgress
-					count={stories.length}
-					activeIndex={activeIndex}
-					segmentReplayToken={segmentReplayToken}
-					holdPaused={holdPaused}
-					onSegmentComplete={onProgressComplete}
-				/>
-				<AnimatePresence>
-					{isStoryInfoVisible && (
-						<StoryInfo
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							transition={{ duration: 0.2 }}
-						>
-							<Flexbox $gap={10} $align="center" $nowrap>
-								<img src="/img/ava.jpg" alt="" />
-								<Flexbox $direction="column">
-									<span>
-										<strong>Ваша история</strong> &bull;{' '}
-										{activeIndex + 1}/{stories.length}
-									</span>
-									<span>{story.time}</span>
-								</Flexbox>
-								<Space />
-								<CloseButton
-									type="button"
-									aria-label="Закрыть"
-									onClick={onClose}
-								>
-									<Icon icon="times-small" size={50} />
-								</CloseButton>
+				<motion.div
+					variants={FadeInOutVariant}
+					initial="hidden"
+					animate={isStoryInfoVisible ? 'visible' : 'hidden'}
+					style={{ zIndex: 1 }}
+				>
+					<StoriesProgress
+						count={stories.length}
+						activeIndex={activeIndex}
+						segmentReplayToken={segmentReplayToken}
+						holdPaused={holdPaused}
+						isImageLoaded={isContentReady}
+						onSegmentComplete={onProgressComplete}
+					/>
+
+					<StoryInfo>
+						<Flexbox $gap={10} $align="center" $nowrap>
+							<StoryInfoAvatarWrap>
+								<ProgressiveAvatarImg
+									ref={avatarImgRef}
+									src={STORY_AVATAR_SRC}
+									alt=""
+									$sharp={sharp}
+									onLoad={onLoadAvatar}
+									onError={onErrorAvatar}
+								/>
+							</StoryInfoAvatarWrap>
+							<Flexbox $direction="column">
+								<span>
+									<strong>Ваша история</strong> &bull;{' '}
+									{activeIndex + 1}/{stories.length}
+								</span>
+								<span>{story.time}</span>
 							</Flexbox>
-						</StoryInfo>
-					)}
-				</AnimatePresence>
+							<Space />
+							<CloseButton
+								type="button"
+								aria-label="Закрыть"
+								onClick={onClose}
+							>
+								<Icon icon="times-small" size={50} />
+							</CloseButton>
+						</Flexbox>
+					</StoryInfo>
+				</motion.div>
 
 				<StoryImageWrap {...storyWrapPointerProps}>
 					<StoryImageInner>
-						<StoryImage src={story.src} alt="" />
+						<AnimatePresence>
+							{phase === 'loading' ? (
+								<StorySkeletonMotionWrap
+									key="story-skeleton"
+									variants={ImageFadeVariant}
+									initial="hidden"
+									animate="visible"
+									exit="hidden"
+								>
+									<StorySkeleton aria-hidden />
+									<ShimmerOverlay aria-hidden />
+								</StorySkeletonMotionWrap>
+							) : null}
+						</AnimatePresence>
+						{phase === 'error' ? (
+							<StoryBlurFallback src={story.src} alt="" />
+						) : null}
+						<StoryImageMain
+							ref={mainImgRef}
+							src={story.src}
+							alt=""
+							$phase={phase}
+							onLoad={onLoad}
+							onError={onError}
+						/>
 						<StoryTapZone
 							type="button"
 							aria-label="Предыдущий сторис"
@@ -195,7 +252,7 @@ export function StoriesViewer({
 						/>
 					</StoryImageInner>
 				</StoryImageWrap>
-			</MotionStoryShell>
+			</StoryShell>
 		</MotionOverlay>
 	);
 }

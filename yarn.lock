@@ -4719,7 +4719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:^0.34.3":
+"sharp@npm:^0.34.2, sharp@npm:^0.34.3":
   version: 0.34.5
   resolution: "sharp@npm:0.34.5"
   dependencies:
@@ -4988,6 +4988,7 @@ __metadata:
     react-dom: "npm:^19"
     react-is: "npm:^19"
     sass: "npm:^1.81.0"
+    sharp: "npm:^0.34.2"
     styled-components: "npm:^5.3.9"
     styled-media-query: "npm:^2.1.2"
     typescript: "npm:^5.6.0"

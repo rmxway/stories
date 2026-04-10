@@ -1,7 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
+
+const storyShimmerSlide = keyframes`
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(250%);
+	}
+`;
 
 export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
@@ -44,13 +53,27 @@ export const StoryRingInner = styled.div`
 	background: #fff;
 `;
 
-export const StoryAvatar = styled.img`
+/** Аватар: blur до onLoad, затем чёткое изображение (один URL). */
+export const ProgressiveAvatarImg = styled.img<{ $sharp: boolean }>`
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	display: block;
 	user-select: none;
 	pointer-events: none;
+	filter: ${({ $sharp }) => ($sharp ? 'none' : 'blur(5px)')};
+	
+	@media (prefers-reduced-motion: reduce) {
+		filter: none;
+	}
+`;
+
+export const StoryInfoAvatarWrap = styled.div`
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	overflow: hidden;
+	flex-shrink: 0;
 `;
 
 export const Overlay = styled.div`
@@ -71,7 +94,7 @@ export const OverlayBackdrop = styled.div`
 	pointer-events: auto;
 `;
 
-export const StoryShell = styled.div`
+export const StoryShell = styled(motion.div)`
 	position: relative;
 	z-index: 1;
 	height: 100%;
@@ -102,7 +125,7 @@ export const CloseButton = styled.button`
 	width: 40px;
 	height: 40px;
 	position: relative;
-	z-index: 10;
+	z-index: 1;
 	border: none;
 	background: transparent;
 	color: rgba(255, 255, 255, 0.8);
@@ -118,7 +141,7 @@ export const CloseButton = styled.button`
 	}
 `;
 
-export const ProgressRow = styled.div`
+export const ProgressRow = styled(motion.div)`
 	position: absolute;
 	top: 3px;
 	left: 5px;
@@ -127,7 +150,8 @@ export const ProgressRow = styled.div`
 	gap: 4px;
 	padding: 12px 0 8px;
 	flex-shrink: 0;
-	z-index: 5;
+	z-index: 20;
+	pointer-events: none;
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -154,16 +178,16 @@ export const ProgressFillComplete = styled(ProgressFill)`
 	transform: scaleX(1);
 `;
 
-export const StoryInfo = styled(motion.div)`
+export const StoryInfo = styled.div`
 	position: absolute;
 	top: 10px;
 	left: 0;
 	right: 0;
-	height: 20%;	
+	height: 20%;
 	gap: 8px;
 	padding: 15px 5px 15px 12px;
-	z-index: 3;
-	pointer-events: none;	
+	z-index: 10;
+	pointer-events: none;
 
 	&:after {
 		content: '';
@@ -178,16 +202,6 @@ export const StoryInfo = styled(motion.div)`
 			rgba(0, 0, 0, 0.5) 5%,
 			transparent 90%
 		);
-	}
-
-	img {
-		width: 30px;
-		height: 30px;
-		border-radius: 50%;
-		object-fit: cover;
-		display: block;
-		user-select: none;
-		pointer-events: none;
 	}
 
 	strong {
@@ -216,6 +230,8 @@ export const StoryInfo = styled(motion.div)`
 `;
 
 export const StoryImageWrap = styled.div`
+	position: relative;
+	z-index: 0;
 	flex: 1;
 	min-height: 0;
 	display: flex;
@@ -249,7 +265,7 @@ export const StoryTapZone = styled.button<{
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	z-index: 1;
+	z-index: 4;
 	overflow: hidden;
 	-webkit-tap-highlight-color: transparent;
 	touch-action: none;
@@ -279,11 +295,89 @@ export const StoryTapZone = styled.button<{
 	}
 `;
 
-export const StoryImage = styled.img`
+export const StorySkeletonMotionWrap = styled(motion.div)`
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	pointer-events: none;
+`;
+
+export const StorySkeleton = styled.div`
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.42);
+	pointer-events: none;
+`;
+
+export const ShimmerOverlay = styled.div`
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	overflow: hidden;
+	pointer-events: none;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		width: 55%;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.08) 40%,
+			rgba(255, 255, 255, 0.16) 50%,
+			rgba(255, 255, 255, 0.08) 60%,
+			transparent 100%
+		);
+		animation: ${storyShimmerSlide} 1.35s ease-in-out infinite;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&::after {
+			animation: none;
+			opacity: 0.4;
+			transform: none;
+		}
+	}
+`;
+
+/** Blur-fallback при ошибке загрузки кадра сторис. */
+export const StoryBlurFallback = styled.img`
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	z-index: 2;
+	pointer-events: none;
+	user-select: none;
+	filter: blur(22px) brightness(0.78);
+	transform: scale(1.08);
+`;
+
+type StoryImagePhase = 'loading' | 'loaded' | 'error';
+
+export const StoryImageMain = styled.img<{ $phase: StoryImagePhase }>`
+	position: absolute;
+	inset: 0;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	display: block;
+	z-index: 2;
+	opacity: ${({ $phase }) => ($phase === 'error' ? 0 : 1)};
+	filter: ${({ $phase }) =>
+		$phase === 'loading' ? 'blur(20px) brightness(0.85)' : 'none'};
+	transform: ${({ $phase }) =>
+		$phase === 'loading' ? 'scale(1.08)' : 'none'};
+	transition:
+		filter 0.2s ease,
+		transform 0.2s ease,
+		opacity 0.2s ease;
 	user-select: none;
 	pointer-events: none;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 `;

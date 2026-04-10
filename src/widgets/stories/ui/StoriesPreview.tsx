@@ -3,12 +3,17 @@
 import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 
-import { STORIES_SHELL_LAYOUT_ID, type StoryItem } from '../constants';
+import {
+	STORIES_SHELL_LAYOUT_ID,
+	STORY_AVATAR_SRC,
+	type StoryItem,
+} from '../constants';
+import { useProgressiveAvatarPhase } from '../lib/useStoryImagePreload';
 import { StoryRingSvg } from './StoryRingSvg';
 import {
 	PreviewButton,
 	PreviewWrap,
-	StoryAvatar,
+	ProgressiveAvatarImg,
 	StoryRingFrame,
 	StoryRingInner,
 	StoryRingSvgWrap,
@@ -32,6 +37,8 @@ export const StoriesPreview = forwardRef<
 	ref,
 ) {
 	const seenByIndex = stories.map((s) => seenIds.includes(s.id));
+	const { sharp, onLoad, onError, imgRef } =
+		useProgressiveAvatarPhase(STORY_AVATAR_SRC);
 
 	return (
 		<PreviewWrap>
@@ -52,7 +59,14 @@ export const StoriesPreview = forwardRef<
 						/>
 					</StoryRingSvgWrap>
 					<StoryRingInner>
-						<StoryAvatar src="/img/ava.jpg" alt="" />
+						<ProgressiveAvatarImg
+							ref={imgRef}
+							src={STORY_AVATAR_SRC}
+							alt=""
+							$sharp={sharp}
+							onLoad={onLoad}
+							onError={onError}
+						/>
 					</StoryRingInner>
 				</StoryRingFrame>
 			</MotionPreviewButton>

@@ -10,7 +10,8 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"pretty": "prettier --write .",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"img:prog": "node scripts/make-progressive-img-jpegs.mjs"
 	},
 	"dependencies": {
 		"framer-motion": "^12.38.0",
@@ -43,6 +44,7 @@
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"fantasticon": "^4.1.0",
 		"prettier": "^3.4.2",
+		"sharp": "^0.34.2",
 		"typescript": "^5.6.0"
 	},
 	"resolutions": {
