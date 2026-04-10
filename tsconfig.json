@@ -14,7 +14,15 @@
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"incremental": true,
-		"plugins": [{ "name": "next" }],
+		"plugins": [
+			{ "name": "next" },
+			{
+				"name": "@styled/typescript-styled-plugin",
+				"lint": {
+					"validProperties": ["container-type"]
+				}
+			}
+		],
 		"paths": {
 			"@/*": ["./src/*"],
 			"@public/*": ["./public/*"]

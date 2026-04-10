@@ -107,10 +107,6 @@ export function StoriesViewer({
 	});
 
 	useEffect(() => {
-		console.log(isStoryInfoVisible);
-	}, [isStoryInfoVisible]);
-
-	useEffect(() => {
 		if (!holdPaused || isVerticalDismissActive) {
 			setIsStoryInfoVisible(true);
 			return;
@@ -184,7 +180,7 @@ export function StoriesViewer({
 									onError={onErrorAvatar}
 								/>
 							</StoryInfoAvatarWrap>
-							<Flexbox $direction="column">
+							<Flexbox $direction="column" $gap={2}>
 								<span>
 									<strong>Ваша история</strong> &bull;{' '}
 									{activeIndex + 1}/{stories.length}
@@ -197,7 +193,7 @@ export function StoriesViewer({
 								aria-label="Закрыть"
 								onClick={onClose}
 							>
-								<Icon icon="times-small" size={50} />
+								<Icon icon="times-small" size={5} />
 							</CloseButton>
 						</Flexbox>
 					</StoryInfo>

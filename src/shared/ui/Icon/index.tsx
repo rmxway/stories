@@ -10,6 +10,7 @@ export interface IconProps {
 	as?: ElementType;
 	icon: Icofont;
 	size?: number;
+	rem?: boolean;
 	className?: string;
 }
 
@@ -20,6 +21,7 @@ export const Icon: FC<IconProps> = ({
 	as,
 	icon,
 	size,
+	rem,
 	className,
 	...props
 }) => (
@@ -29,6 +31,7 @@ export const Icon: FC<IconProps> = ({
 			.filter(Boolean)
 			.join(' ')}
 		$size={size}
+		$rem={rem}
 		{...props}
 	/>
 );

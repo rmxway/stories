@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import styled, { css, keyframes } from 'styled-components';
 
+import { StyledIcon } from '@/shared/ui/Icon/styled';
+
 const storyShimmerSlide = keyframes`
 	0% {
 		transform: translateX(-100%);
@@ -62,15 +64,19 @@ export const ProgressiveAvatarImg = styled.img<{ $sharp: boolean }>`
 	user-select: none;
 	pointer-events: none;
 	filter: ${({ $sharp }) => ($sharp ? 'none' : 'blur(5px)')};
-	
+
 	@media (prefers-reduced-motion: reduce) {
 		filter: none;
 	}
 `;
 
 export const StoryInfoAvatarWrap = styled.div`
-	width: 30px;
-	height: 30px;
+	width: 5cqi;
+	height: 5cqi;
+	min-width: 20px;
+	min-height: 20px;
+	max-width: 48px;
+	max-height: 48px;
 	border-radius: 50%;
 	overflow: hidden;
 	flex-shrink: 0;
@@ -98,12 +104,16 @@ export const StoryShell = styled(motion.div)`
 	position: relative;
 	z-index: 1;
 	height: 100%;
+	max-width: 100%;
+	min-width: 160px;
 	aspect-ratio: 1/1.8;
 	max-height: 100dvh;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
 	padding: 10px 0 50px;
+	container-type: inline-size;
+
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -122,8 +132,8 @@ export const VisuallyHidden = styled.span`
 `;
 
 export const CloseButton = styled.button`
-	width: 40px;
-	height: 40px;
+	width: clamp(20px, 6.5cqi, 40px);
+	height: clamp(20px, 6.5cqi, 40px);
 	position: relative;
 	z-index: 1;
 	border: none;
@@ -135,6 +145,10 @@ export const CloseButton = styled.button`
 	align-items: center;
 	justify-content: center;
 	pointer-events: auto;
+
+	${StyledIcon} {
+		font-size: clamp(35px, 10cqi, 70px);
+	}
 
 	&:hover {
 		color: #fff;
@@ -159,7 +173,7 @@ export const ProgressRow = styled(motion.div)`
 
 export const ProgressTrack = styled.div`
 	flex: 1;
-	height: 2px;
+	height: 1px;
 	border-radius: 2px;
 	background: rgba(255, 255, 255, 0.25);
 	overflow: hidden;
@@ -184,10 +198,14 @@ export const StoryInfo = styled.div`
 	left: 0;
 	right: 0;
 	height: 20%;
-	gap: 8px;
-	padding: 15px 5px 15px 12px;
+	font-size: clamp(10px, 2.55cqi, 16px);
+	padding: clamp(10px, 2cqi, 12px) clamp(4px, 2cqi, 10px);
 	z-index: 10;
 	pointer-events: none;
+
+	& > div {
+		gap: clamp(6px, 2.2cqi, 12px);
+	}
 
 	&:after {
 		content: '';
@@ -205,22 +223,20 @@ export const StoryInfo = styled.div`
 	}
 
 	strong {
-		font-size: 16px;
+		font-size: clamp(10px, 2.55cqi, 16px);
 		font-weight: 600;
 	}
 
 	span {
-		color: #fff;
-		font-size: 12px;
-		line-height: 1.25;
+		font-size: clamp(8px, 2.2cqi, 14px);
+		line-height: 1;
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: hidden;
 	}
 
 	time {
-		color: rgba(255, 255, 255, 0.82);
-		font-size: 13px;
+		font-size: clamp(8px, 2.2cqi, 14px);
 		font-weight: 500;
 		line-height: 1.2;
 		white-space: nowrap;
