@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import styled, { css, keyframes } from 'styled-components';
 
 import { StyledIcon } from '@/shared/ui/Icon/styled';
@@ -55,22 +56,18 @@ export const StoryRingInner = styled.div`
 	background: #fff;
 `;
 
-/** Аватар: blur до onLoad, затем чёткое изображение (один URL). */
-export const ProgressiveAvatarImg = styled.img<{ $sharp: boolean }>`
+/** Аватар: LQIP через `placeholder="blur"` + `blurDataURL` из `blur-map`. */
+export const StoryAvatarImage = styled(Image)`
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	display: block;
 	user-select: none;
 	pointer-events: none;
-	filter: ${({ $sharp }) => ($sharp ? 'none' : 'blur(5px)')};
-
-	@media (prefers-reduced-motion: reduce) {
-		filter: none;
-	}
 `;
 
 export const StoryInfoAvatarWrap = styled.div`
+	position: relative;
 	width: 5cqi;
 	height: 5cqi;
 	min-width: 20px;
@@ -373,7 +370,11 @@ export const StoryBlurFallback = styled.img`
 
 type StoryImagePhase = 'loading' | 'loaded' | 'error';
 
-export const StoryImageMain = styled.img<{ $phase: StoryImagePhase }>`
+export const StoryImageMain = styled(Image).attrs<{
+	$phase: StoryImagePhase;
+}>(() => ({
+	fill: true,
+}))<{ $phase: StoryImagePhase }>`
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -382,14 +383,7 @@ export const StoryImageMain = styled.img<{ $phase: StoryImagePhase }>`
 	display: block;
 	z-index: 2;
 	opacity: ${({ $phase }) => ($phase === 'error' ? 0 : 1)};
-	filter: ${({ $phase }) =>
-		$phase === 'loading' ? 'blur(20px) brightness(0.85)' : 'none'};
-	transform: ${({ $phase }) =>
-		$phase === 'loading' ? 'scale(1.08)' : 'none'};
-	transition:
-		filter 0.2s ease,
-		transform 0.2s ease,
-		opacity 0.2s ease;
+	transition: opacity 0.2s ease;
 	user-select: none;
 	pointer-events: none;
 

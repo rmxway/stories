@@ -8,10 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 
 /** Каталоги с JPEG: слайды сторис и корень `img` (ава и др.). */
-const REL_DIRS = [
-	['public', 'img', 'stories'],
-	['public', 'img'],
-];
+const REL_DIRS = [['public', 'img', 'stories']];
 
 async function processDir(relParts) {
 	const dir = path.join(root, ...relParts);

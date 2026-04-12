@@ -5,7 +5,8 @@
 	"scripts": {
 		"dev": "next dev",
 		"icofont": "mkdir -p public/assets/fonts/icofont && fantasticon && printf '\\n' >> public/assets/fonts/icofont/icofont.json",
-		"build": "next build",
+		"prebuild": "node scripts/generate-blur-data-urls.mjs",
+		"build": "yarn prebuild && next build",
 		"start": "next start",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",

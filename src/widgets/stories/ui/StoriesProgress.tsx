@@ -34,6 +34,12 @@ function ActiveStoryProgressFill({
 	useEffect(() => {
 		scaleX.set(0.001);
 		controlsRef.current?.stop();
+		controlsRef.current = null;
+
+		if (!isImageLoaded) {
+			return;
+		}
+
 		controlsRef.current = animate(scaleX, 1, {
 			duration: STORY_DURATION_SEC,
 			ease: 'linear',
@@ -43,16 +49,22 @@ function ActiveStoryProgressFill({
 		});
 		return () => {
 			controlsRef.current?.stop();
+			controlsRef.current = null;
 		};
-	}, [segmentIndex, segmentReplayToken, scaleX, onSegmentComplete]);
+	}, [
+		segmentIndex,
+		segmentReplayToken,
+		isImageLoaded,
+		scaleX,
+		onSegmentComplete,
+	]);
 
 	useEffect(() => {
 		const c = controlsRef.current;
 		if (!c) {
 			return;
 		}
-		const paused = holdPaused || !isImageLoaded;
-		if (paused) {
+		if (holdPaused) {
 			c.pause();
 		} else {
 			c.play();

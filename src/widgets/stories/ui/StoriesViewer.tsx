@@ -1,8 +1,9 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { type ComponentProps, useEffect, useState } from 'react';
+import { type ComponentProps, useEffect, useMemo, useState } from 'react';
 
+import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import { FadeInOutVariant, ImageFadeVariant } from '@/shared/lib/framer-motion';
 import { Flexbox, Icon, Space } from '@/shared/ui';
 
@@ -22,9 +23,8 @@ import {
 	CloseButton,
 	Overlay,
 	OverlayBackdrop,
-	ProgressiveAvatarImg,
 	ShimmerOverlay,
-	StoryBlurFallback,
+	StoryAvatarImage,
 	StoryImageInner,
 	StoryImageMain,
 	StoryImageWrap,
@@ -83,11 +83,15 @@ export function StoriesViewer({
 	const { phase, onLoad, onError, isContentReady, mainImgRef } =
 		useStorySlidePhase(story?.src ?? '');
 	const {
-		sharp,
 		onLoad: onLoadAvatar,
 		onError: onErrorAvatar,
 		imgRef: avatarImgRef,
 	} = useProgressiveAvatarPhase(STORY_AVATAR_SRC);
+	const avatarBlur = getBlurDataURL(STORY_AVATAR_SRC);
+	const storyBlur = useMemo(
+		() => (story?.src ? getBlurDataURL(story.src) : undefined),
+		[story?.src],
+	);
 
 	const {
 		dismissDragY,
@@ -120,6 +124,18 @@ export function StoriesViewer({
 			window.clearTimeout(timeoutId);
 		};
 	}, [activeIndex, holdPaused, isVerticalDismissActive]);
+
+	/** Прогревает HTTP-кэш для всех кадров при открытии (меньше повторных запросов при листании). */
+	useEffect(() => {
+		if (typeof window === 'undefined') {
+			return;
+		}
+		for (const s of stories) {
+			const img = new Image();
+			img.decoding = 'async';
+			img.src = s.src;
+		}
+	}, [stories]);
 
 	if (!story) {
 		return null;
@@ -171,11 +187,14 @@ export function StoriesViewer({
 					<StoryInfo>
 						<Flexbox $gap={10} $align="center" $nowrap>
 							<StoryInfoAvatarWrap>
-								<ProgressiveAvatarImg
+								<StoryAvatarImage
 									ref={avatarImgRef}
 									src={STORY_AVATAR_SRC}
 									alt=""
-									$sharp={sharp}
+									fill
+									sizes="48px"
+									placeholder="blur"
+									blurDataURL={avatarBlur}
 									onLoad={onLoadAvatar}
 									onError={onErrorAvatar}
 								/>
@@ -215,13 +234,14 @@ export function StoriesViewer({
 								</StorySkeletonMotionWrap>
 							) : null}
 						</AnimatePresence>
-						{phase === 'error' ? (
-							<StoryBlurFallback src={story.src} alt="" />
-						) : null}
 						<StoryImageMain
+							key={story.id}
 							ref={mainImgRef}
 							src={story.src}
 							alt=""
+							sizes="(max-width: 900px) 100vw, min(90vw, 480px)"
+							placeholder={storyBlur ? 'blur' : 'empty'}
+							blurDataURL={storyBlur}
 							$phase={phase}
 							onLoad={onLoad}
 							onError={onError}

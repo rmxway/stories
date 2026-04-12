@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 
+import { getBlurDataURL } from '@/lib/getBlurDataURL';
+
 import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
@@ -13,7 +15,7 @@ import { StoryRingSvg } from './StoryRingSvg';
 import {
 	PreviewButton,
 	PreviewWrap,
-	ProgressiveAvatarImg,
+	StoryAvatarImage,
 	StoryRingFrame,
 	StoryRingInner,
 	StoryRingSvgWrap,
@@ -37,8 +39,9 @@ export const StoriesPreview = forwardRef<
 	ref,
 ) {
 	const seenByIndex = stories.map((s) => seenIds.includes(s.id));
-	const { sharp, onLoad, onError, imgRef } =
+	const { onLoad, onError, imgRef } =
 		useProgressiveAvatarPhase(STORY_AVATAR_SRC);
+	const avatarBlur = getBlurDataURL(STORY_AVATAR_SRC);
 
 	return (
 		<PreviewWrap>
@@ -59,11 +62,14 @@ export const StoriesPreview = forwardRef<
 						/>
 					</StoryRingSvgWrap>
 					<StoryRingInner>
-						<ProgressiveAvatarImg
+						<StoryAvatarImage
 							ref={imgRef}
 							src={STORY_AVATAR_SRC}
 							alt=""
-							$sharp={sharp}
+							fill
+							loading="lazy"
+							placeholder="blur"
+							blurDataURL={avatarBlur}
 							onLoad={onLoad}
 							onError={onError}
 						/>

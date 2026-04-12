@@ -35,15 +35,10 @@ function imgReadyForSrc(el: HTMLImageElement, src: string): boolean {
 
 export type StorySlidePhase = 'loading' | 'loaded' | 'error';
 
-function initialStoryPhase(src: string): StorySlidePhase {
-	if (!src) {
-		return 'loading';
-	}
-	return decodedImageCache.has(src) ? 'loaded' : 'loading';
-}
-
 /**
- * Состояние загрузки кадра сторис по URL. Повторный src — сразу loaded (кэш).
+ * Состояние загрузки кадра сторис.
+ * Не используем `decodedImageCache` для фазы: по сессии URL мог «быть в кэше», но
+ * реально кадр ещё тянется / LQIP — таймер должен ждать `onLoad` или `img.complete`.
  */
 export function useStorySlidePhase(src: string): {
 	phase: StorySlidePhase;
@@ -52,24 +47,18 @@ export function useStorySlidePhase(src: string): {
 	isContentReady: boolean;
 	mainImgRef: RefObject<HTMLImageElement | null>;
 } {
-	const [phase, setPhase] = useState<StorySlidePhase>(() =>
-		initialStoryPhase(src),
-	);
+	const [phase, setPhase] = useState<StorySlidePhase>('loading');
 	const [wiredSrc, setWiredSrc] = useState(src);
 	const mainImgRef = useRef<HTMLImageElement | null>(null);
 
 	if (wiredSrc !== src) {
 		setWiredSrc(src);
-		setPhase(initialStoryPhase(src));
+		setPhase('loading');
 	}
 
 	useLayoutEffect(() => {
 		if (!src) {
 			setPhase('loading');
-			return;
-		}
-		if (decodedImageCache.has(src)) {
-			setPhase('loaded');
 			return;
 		}
 		const el = mainImgRef.current;
@@ -99,54 +88,39 @@ export function useStorySlidePhase(src: string): {
 	};
 }
 
-function initialAvatarSharp(src: string): boolean {
-	return Boolean(src && decodedImageCache.has(src));
-}
-
 /**
- * Аватар: blur до decode, затем чёткое изображение. Учитывает кэш и img.complete.
+ * Аватар: кэш decode + ref для `next/image`. LQIP — через `placeholder="blur"`.
  */
 export function useProgressiveAvatarPhase(src: string): {
-	sharp: boolean;
 	onLoad: () => void;
 	onError: () => void;
 	imgRef: RefObject<HTMLImageElement | null>;
 } {
-	const [sharp, setSharp] = useState(() => initialAvatarSharp(src));
 	const [wiredSrc, setWiredSrc] = useState(src);
 	const imgRef = useRef<HTMLImageElement | null>(null);
 
 	if (wiredSrc !== src) {
 		setWiredSrc(src);
-		setSharp(initialAvatarSharp(src));
 	}
 
 	useLayoutEffect(() => {
 		if (!src) {
-			setSharp(false);
 			return;
 		}
 		if (decodedImageCache.has(src)) {
-			setSharp(true);
 			return;
 		}
 		const el = imgRef.current;
 		if (el && imgReadyForSrc(el, src)) {
 			rememberDecoded(src);
-			setSharp(true);
-			return;
 		}
-		setSharp(false);
 	}, [src]);
 
 	const onLoad = useCallback(() => {
 		rememberDecoded(src);
-		setSharp(true);
 	}, [src]);
 
-	const onError = useCallback(() => {
-		setSharp(false);
-	}, []);
+	const onError = useCallback(() => {}, []);
 
-	return { sharp, onLoad, onError, imgRef };
+	return { onLoad, onError, imgRef };
 }
