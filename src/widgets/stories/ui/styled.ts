@@ -107,7 +107,7 @@ export const StoryShell = styled(motion.div)`
 	max-height: 100dvh;
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
+	// overflow: hidden;
 	padding: 10px 0 50px;
 	container-type: inline-size;
 
@@ -128,7 +128,7 @@ export const VisuallyHidden = styled.span`
 	border-width: 0;
 `;
 
-export const CloseButton = styled.button`
+export const CloseButton = styled.button<{ $disabled?: boolean }>`
 	width: clamp(20px, 6.5cqi, 40px);
 	height: clamp(20px, 6.5cqi, 40px);
 	position: relative;
@@ -141,7 +141,7 @@ export const CloseButton = styled.button`
 	appearance: none;
 	align-items: center;
 	justify-content: center;
-	pointer-events: auto;
+	pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
 
 	${StyledIcon} {
 		font-size: clamp(35px, 10cqi, 70px);
@@ -242,9 +242,9 @@ export const StoryInfo = styled.div`
 	}
 `;
 
-export const StoryImageWrap = styled.div`
+export const StoryImageWrap = styled(motion.div)<{ $viewersMode?: boolean }>`
 	position: relative;
-	z-index: 0;
+	z-index: 5;
 	flex: 1;
 	min-height: 0;
 	display: flex;
@@ -255,15 +255,52 @@ export const StoryImageWrap = styled.div`
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
+	pointer-events: ${({ $viewersMode }) => ($viewersMode ? 'none' : 'auto')};
+	transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 `;
 
-export const StoryImageInner = styled.div`
+export const StoryImageInner = styled(motion.div)`
 	position: relative;
+	z-index: 2;
 	flex: 1;
 	min-height: 0;
 	width: 100%;
 	border-radius: 8px;
 	overflow: hidden;
+`;
+
+/** Соседние кадры при свайпе вверх: слева/справа от уменьшающегося основного. */
+export const StoryNeighborCard = styled(motion.button)<{
+	$side: 'left' | 'right';
+}>`
+	${({ $side }) => css`
+		position: absolute;
+		top: 50%;
+		width: clamp(64px, 19cqi, 88px);
+		aspect-ratio: 1 / 1.8;
+		border: none;
+		border-radius: 10px;
+		padding: 0;
+		overflow: hidden;
+		cursor: pointer;
+		z-index: 1;
+		box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38);
+		background: #141414;
+		-webkit-tap-highlight-color: transparent;
+
+		${$side === 'left'
+			? css`
+					left: clamp(6px, 1.5cqi, 14px);
+				`
+			: css`
+					right: clamp(6px, 1.5cqi, 14px);
+				`}
+	`}
+`;
+
+export const StoryNeighborImageInner = styled.div`
+	position: absolute;
+	inset: 0;
 `;
 
 export const StoryTapZone = styled.button<{
@@ -390,4 +427,213 @@ export const StoryImageMain = styled(Image).attrs<{
 	@media (prefers-reduced-motion: reduce) {
 		transition: none;
 	}
+`;
+
+export const ViewersPreviewWrap = styled(motion.div)`
+	position: absolute;
+	bottom: 20px;
+	left: 20px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	z-index: 10;
+	pointer-events: none;
+	user-select: none;
+`;
+
+export const ViewersPreviewAvatars = styled.div`
+	display: flex;
+	align-items: center;
+	padding-left: 10px; /* To account for first child margin if needed, but not strictly necessary */
+`;
+
+export const ViewersPreviewAvatarWrap = styled.div`
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 2px solid #000;
+	margin-left: -10px;
+	position: relative;
+	background: #333;
+`;
+
+export const ViewersPreviewCount = styled.div`
+	color: #fff;
+	font-size: 14px;
+	font-weight: 500;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+`;
+
+export const ViewersPanelWrap = styled.div`
+	position: absolute;
+	inset: 0;
+	z-index: 30;
+	background: transparent;
+	display: flex;
+	flex-direction: column;
+	pointer-events: none;
+`;
+
+/** Слой слайдера + панели зрителей: родитель с `pointer-events: none`, клики ловят дети с `auto`. */
+export const StoriesViewersModeRoot = styled(motion.div)`
+	${() => css`
+		position: absolute;
+		inset: 0;
+		z-index: 25;
+		pointer-events: none;
+		transform-origin: 50% 42%;
+	`}
+`;
+
+export const ViewersPanelContent = styled(motion.div)`
+	position: absolute;
+	width: 100%;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	max-width: 400px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: auto;
+	height: 35%;
+	background: #1c1c1e;
+	border-top-left-radius: 16px;
+	border-top-right-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	pointer-events: auto;
+	padding-top: 16px;
+`;
+
+export const ViewersPanelHeader = styled.div`
+	padding: 0 16px 16px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+`;
+
+export const ViewersPanelTitle = styled.h3`
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	margin: 0;
+`;
+
+export const ViewersPanelList = styled.div`
+	flex: 1;
+	overflow-y: auto;
+	padding: 16px 0;
+	-webkit-overflow-scrolling: touch;
+`;
+
+export const ViewersPanelEmptyState = styled.div`
+	padding: 16px;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	line-height: 1.4;
+`;
+
+export const ViewersListItemWrap = styled.div`
+	${() => css`
+		display: flex;
+		align-items: center;
+		padding: 8px 16px;
+		gap: 12px;
+		background: transparent;
+		transition: background 0.2s;
+
+		&:active {
+			background: rgba(255, 255, 255, 0.05);
+		}
+	`}
+`;
+
+export const ViewersListItemAvatar = styled.div`
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	overflow: hidden;
+	position: relative;
+	background: #333;
+	flex-shrink: 0;
+`;
+
+export const ViewersListItemInfo = styled.div`
+	${() => css`
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		flex: 1;
+		min-width: 0;
+
+		strong {
+			font-size: 15px;
+			color: #fff;
+			font-weight: 500;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		span {
+			font-size: 13px;
+			color: rgba(255, 255, 255, 0.6);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	`}
+`;
+
+export const StoriesSliderWrap = styled(motion.div)`
+	${() => css`
+		position: absolute;
+		top: 8%;
+		left: 0;
+		right: 0;
+		height: 52%;
+		z-index: 20;
+		display: flex;
+		align-items: center;
+		touch-action: none;
+		pointer-events: auto;
+	`}
+`;
+
+/** Горизонтальный трек: центрирование по ширине оболочки (100% = ширина слайдера). */
+export const StoriesSliderTrack = styled.div`
+	${() => css`
+		display: flex;
+		flex-direction: row;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 16px;
+		width: max-content;
+		padding: 0 max(0px, calc((100% - 140px) / 2));
+	`}
+`;
+
+export const StoryThumbnailItemWrap = styled(motion.div)`
+	${() => css`
+		position: relative;
+		flex: 0 0 140px;
+		width: 140px;
+		aspect-ratio: 1 / 1.8;
+		border-radius: 8px;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+
+		img {
+			user-select: none;
+			-webkit-user-select: none;
+			-webkit-touch-callout: none;
+			pointer-events: none;
+		}
+	`}
 `;

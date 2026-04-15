@@ -47,17 +47,16 @@ function ActiveStoryProgressFill({
 				onSegmentComplete(segmentIndex);
 			},
 		});
+		/* После сброса segmentReplayToken holdPaused может не меняться — второй эффект тогда не
+		 * перезапустится; сразу ставим на паузу, если нужно. */
+		if (holdPaused) {
+			controlsRef.current.pause();
+		}
 		return () => {
 			controlsRef.current?.stop();
 			controlsRef.current = null;
 		};
-	}, [
-		segmentIndex,
-		segmentReplayToken,
-		isImageLoaded,
-		scaleX,
-		onSegmentComplete,
-	]);
+	}, [segmentIndex, segmentReplayToken, isImageLoaded, scaleX, onSegmentComplete, holdPaused]);
 
 	useEffect(() => {
 		const c = controlsRef.current;
@@ -69,7 +68,7 @@ function ActiveStoryProgressFill({
 		} else {
 			c.play();
 		}
-	}, [holdPaused, isImageLoaded]);
+	}, [holdPaused, isImageLoaded, segmentReplayToken]);
 
 	return <MotionFill style={{ scaleX }} />;
 }

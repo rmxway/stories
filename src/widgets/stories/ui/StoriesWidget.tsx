@@ -99,6 +99,19 @@ export function StoriesWidget() {
 		setActiveIndex((i) => i + 1);
 	}, [activeIndex, markSeen]);
 
+	const goToIndex = useCallback(
+		(index: number) => {
+			const cur = STORIES[activeIndex];
+			if (cur) {
+				markSeen(cur.id);
+			}
+			if (index >= 0 && index < STORIES.length) {
+				setActiveIndex(index);
+			}
+		},
+		[activeIndex, markSeen],
+	);
+
 	const handleProgressComplete = useCallback(
 		(completedForIndex: number) => {
 			const current = activeIndexRef.current;
@@ -171,6 +184,8 @@ export function StoriesWidget() {
 						onProgressComplete={handleProgressComplete}
 						onTapPrevious={goToPreviousStory}
 						onTapNext={goToNextStory}
+						onChangeActiveIndex={goToIndex}
+						onResetSegmentTimer={replayCurrentSegment}
 					/>
 				) : null}
 			</AnimatePresence>
