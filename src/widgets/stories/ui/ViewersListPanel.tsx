@@ -7,6 +7,7 @@ import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import { Icon } from '@/shared/ui';
 
 import { STORY_AVATAR_SRC, StoryViewRecord } from '../constants';
+import { formatStoryViewCount } from '../lib/formatStoryViewCount';
 import {
 	CloseButton,
 	ViewersListItemAvatar,
@@ -36,6 +37,7 @@ export function ViewersListPanel({
 	onScrollStateChange,
 }: ViewersListPanelProps) {
 	const hasViewers = Boolean(viewers?.length);
+	const count = viewers.length;
 
 	return (
 		<ViewersPanelContent
@@ -44,7 +46,7 @@ export function ViewersListPanel({
 				y: panelY,
 				pointerEvents: interactive ? 'auto' : 'none',
 				opacity: interactive ? 1 : 0,
-			}}			
+			}}
 			// When user starts touching the list, we might want to stop the drag to close viewers
 			onPointerDown={(e) => {
 				e.stopPropagation();
@@ -60,7 +62,9 @@ export function ViewersListPanel({
 			}}
 		>
 			<ViewersPanelHeader>
-				<ViewersPanelTitle>Просмотры</ViewersPanelTitle>
+				<ViewersPanelTitle>
+					{formatStoryViewCount(count)}
+				</ViewersPanelTitle>
 				<CloseButton
 					type="button"
 					aria-label="Закрыть просмотры"
@@ -82,7 +86,7 @@ export function ViewersListPanel({
 										src={src}
 										alt={viewer.name}
 										fill
-										sizes="44px"
+										sizes="30px"
 										placeholder="blur"
 										blurDataURL={blur}
 										style={{ objectFit: 'cover' }}

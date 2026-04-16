@@ -17,9 +17,9 @@ const storyShimmerSlide = keyframes`
 
 const STORY_CARD_ASPECT_RATIO_H_OVER_W = 1.8;
 const STORY_CARD_ASPECT_RATIO = `1/${STORY_CARD_ASPECT_RATIO_H_OVER_W}`;
-const STORY_CARD_MIN_WIDTH = '160px';
+const STORY_CARD_MIN_WIDTH = '120px';
 const STORY_CARD_HEIGHT_AT_HALF_VIEWPORT = 'min(50dvh, 50%)';
-const STORY_CARD_WIDTH_AT_HALF_VIEWPORT = `max(${STORY_CARD_MIN_WIDTH}, calc(50dvh / ${STORY_CARD_ASPECT_RATIO_H_OVER_W}))`;
+const STORY_CARD_WIDTH_AT_HALF_VIEWPORT = `calc(50dvh / ${STORY_CARD_ASPECT_RATIO_H_OVER_W})`;
 
 export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
@@ -107,16 +107,15 @@ export const StoryShell = styled(motion.div)`
 	position: relative;
 	z-index: 1;
 	height: 100%;
+	max-height: 100dvh;
 	max-width: 100%;
 	min-width: ${STORY_CARD_MIN_WIDTH};
 	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
-	max-height: 100dvh;
 	display: flex;
 	flex-direction: column;
-	// overflow: hidden;
-	padding: 10px 0 50px;
+	padding: 10px 0 clamp(35px, 5.5cqi, 50px);
 	container-type: inline-size;
-
+	
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -412,13 +411,13 @@ export const ViewersPreviewWrap = styled(motion.div)`
 	left: 0;
 	display: flex;
 	align-items: center;
-	height: 50px;
-	gap: 12px;
+	height: clamp(40px, 8cqi, 60px);
+	gap: clamp(4px, 3cqi, 12px);
 	z-index: 10;
 	pointer-events: auto;
 	cursor: pointer;
 	user-select: none;
-	padding: 12px;
+	padding: clamp(4px, 3cqi, 12px);
 `;
 
 export const ViewersPreviewAvatars = styled.div`
@@ -428,8 +427,8 @@ export const ViewersPreviewAvatars = styled.div`
 `;
 
 export const ViewersPreviewAvatarWrap = styled.div`
-	width: 32px;
-	height: 32px;
+	width: clamp(22px, 7cqi, 32px);
+	height: clamp(22px, 7cqi, 32px);
 	border-radius: 50%;
 	overflow: hidden;
 	border: 2px solid #000;
@@ -444,7 +443,7 @@ export const ViewersPreviewAvatarWrap = styled.div`
 
 export const ViewersPreviewCount = styled.div`
 	color: #fff;
-	font-size: 14px;
+	font-size: clamp(10px, 2.55cqi, 16px);
 	line-height: 1;
 	font-weight: 500;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -465,26 +464,21 @@ export const ViewersPanelWrap = styled.div`
 
 /** Слой слайдера + панели зрителей: родитель с `pointer-events: none`, клики ловят дети с `auto`. */
 export const StoriesViewersModeRoot = styled(motion.div)`
-	${() => css`
-		position: absolute;
-		inset: 0;
-		z-index: 25;
-		pointer-events: none;
-		transform-origin: 50% 42%;
-	`}
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 100%;
+	bottom: 0;
+	z-index: 25;
+	pointer-events: none;
+	transform-origin: bottom center;
 `;
 
 export const ViewersPanelContent = styled(motion.div)`
 	position: absolute;
-	width: 100%;
-	left: 0;
-	right: 0;
 	bottom: 0;
-	max-width: 400px;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: auto;
-	height: 50%;
+	width: 100%;
+	height: 50dvh;
 	background: #1c1c1e;
 	border-top-left-radius: 16px;
 	border-top-right-radius: 16px;
@@ -504,15 +498,17 @@ export const ViewersPanelHeader = styled.div`
 
 export const ViewersPanelTitle = styled.h3`
 	color: #fff;
-	font-size: 16px;
+	font-size: clamp(12px, 4cqi, 16px);
 	font-weight: 600;
 	margin: 0;
+	text-align: center;
+	width: 100%;
 `;
 
 export const ViewersPanelList = styled.div`
 	flex: 1;
 	overflow-y: auto;
-	padding: 16px 0;
+	padding: 8px 0;
 	-webkit-overflow-scrolling: touch;
 `;
 
@@ -524,23 +520,21 @@ export const ViewersPanelEmptyState = styled.div`
 `;
 
 export const ViewersListItemWrap = styled.div`
-	${() => css`
-		display: flex;
-		align-items: center;
-		padding: 8px 16px;
-		gap: 12px;
-		background: transparent;
-		transition: background 0.2s;
+	display: flex;
+	align-items: center;
+	padding: 8px 16px;
+	gap: 12px;
+	background: transparent;
+	transition: background 0.2s;
 
-		&:active {
-			background: rgba(255, 255, 255, 0.05);
-		}
-	`}
+	&:active {
+		background: rgba(255, 255, 255, 0.05);
+	}
 `;
 
 export const ViewersListItemAvatar = styled.div`
-	width: 44px;
-	height: 44px;
+	width: 30px;
+	height: 30px;
 	border-radius: 50%;
 	overflow: hidden;
 	position: relative;
@@ -549,46 +543,41 @@ export const ViewersListItemAvatar = styled.div`
 `;
 
 export const ViewersListItemInfo = styled.div`
-	${() => css`
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 4px;
-		flex: 1;
-		min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	flex: 1;
+	min-width: 0;
 
-		strong {
-			font-size: 15px;
-			color: #fff;
-			font-weight: 500;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
+	strong {
+		font-size: clamp(10px, 3cqi, 15px);
+		color: #fff;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 
-		span {
-			font-size: 13px;
-			color: rgba(255, 255, 255, 0.6);
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-	`}
+	span {
+		font-size: 13px;
+		color: rgba(255, 255, 255, 0.6);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 `;
 
 export const StoriesSliderWrap = styled(motion.div)`
-	${() => css`
-		position: absolute;
-		top: 8%;
-		left: 0;
-		right: 0;
-		height: 52%;
-		z-index: 20;
-		display: flex;
-		align-items: center;
-		touch-action: none;
-		pointer-events: auto;
-	`}
+	position: absolute;
+	top: 8%;
+	left: 0;
+	right: 0;
+	height: 52%;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	touch-action: none;
+	pointer-events: auto;
 `;
 
 export const StorySwipeSliderContent = styled.div`
@@ -599,46 +588,43 @@ export const StorySwipeSliderContent = styled.div`
 	min-height: 0;
 	height: ${STORY_CARD_HEIGHT_AT_HALF_VIEWPORT};
 	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
-	z-index: 0;
+	z-index: 0;	
 `;
 
 export const StorySwipeSliderWrap = styled(motion.div)`
-	${() => css`
-		height: 100%;
-		box-sizing: border-box;
-		width: 100%;
-	`}
+	height: 100%;
+	box-sizing: border-box;
+	width: 100%;	
 `;
 
 /** Горизонтальный трек: центрирование активной миниатюры; размеры согласованы с `StoryThumbnailItemWrap`. */
 export const StoriesSliderTrack = styled.div`
-	${() => css`
-		position: relative;
-		display: flex;
-		gap: 30px;
-		height: 100%;
-		width: max-content;
-	`}
+	position: relative;
+	display: flex;
+	gap: 20px;
+	height: 100%;
+	width: max-content;	
 `;
 
 export const StoryThumbnailItemWrap = styled(motion.div)`
-	${() => css`
-		position: relative;
-		max-width: 100%;
-		width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
-		aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
-		min-width: ${STORY_CARD_MIN_WIDTH};
-		border-radius: 4px;
-		overflow: hidden;
-		cursor: pointer;
-		-webkit-tap-highlight-color: transparent;
+	position: relative;
+	max-width: 100%;
+	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
+	height: 100%;
+	max-height: 50dvh;
+	max-width: 100%;
+	// min-width: ${STORY_CARD_MIN_WIDTH};
+	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};	
+	border-radius: 4px;
+	overflow: hidden;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
 
-		img {
-			object-fit: cover;
-			user-select: none;
-			-webkit-user-select: none;
-			-webkit-touch-callout: none;
-			pointer-events: none;
-		}
-	`}
+	img {
+		object-fit: cover;
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+		pointer-events: none;
+	}
 `;

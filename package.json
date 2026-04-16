@@ -12,7 +12,8 @@
 		"lint:fix": "eslint . --fix",
 		"pretty": "prettier --write .",
 		"typecheck": "tsc --noEmit",
-		"img:prog": "node scripts/make-progressive-img-jpegs.mjs"
+		"img:prog": "node scripts/make-progressive-img-jpegs.mjs",
+		"img:opt": "node scripts/optimize-images.mjs"
 	},
 	"dependencies": {
 		"framer-motion": "^12.38.0",

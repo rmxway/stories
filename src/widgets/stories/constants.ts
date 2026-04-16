@@ -51,7 +51,7 @@ export const STORIES = [
 			{
 				id: 'v1-3',
 				name: 'Ольга',
-				img: '/img/ava.jpg',
+				img: '/img/ava3.jpg',
 				date: 'вчера в 21:33',
 			},
 		],

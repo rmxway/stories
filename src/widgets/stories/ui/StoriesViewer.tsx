@@ -360,9 +360,7 @@ function StoriesViewerInner() {
 						/>
 					</StoryImageInner>
 				</StoryImageWrap>
-
 				<StoriesViewersMode key="stories-viewers-layer" />
-
 				<StoryViewersPreview />
 			</StoryShell>
 		</>

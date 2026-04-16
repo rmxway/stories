@@ -7,8 +7,8 @@ import sharp from 'sharp';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 
-/** Каталоги с JPEG: слайды сторис и корень `img` (ава и др.). */
-const REL_DIRS = [['public', 'img', 'stories']];
+/** По умолчанию обрабатываем весь каталог `public/img` рекурсивно. */
+const REL_DIRS = [['public', 'img']];
 
 async function processDir(relParts) {
 	const dir = path.join(root, ...relParts);
@@ -20,6 +20,11 @@ async function processDir(relParts) {
 	}
 
 	for (const ent of entries) {
+		if (ent.isDirectory()) {
+			await processDir([...relParts, ent.name]);
+			continue;
+		}
+
 		if (!ent.isFile() || !/\.jpe?g$/i.test(ent.name)) {
 			continue;
 		}
