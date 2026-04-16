@@ -30,6 +30,7 @@ export function StoriesViewersMode({
 	isViewersMode,
 	isVerticalSwipeUpActive,
 	isVerticalSwipeDownCloseActive,
+	onCloseViewersMode,
 	onScrollStateChange,
 }: StoriesViewersModeProps) {
 	/* Горизонтальный трек миниатюр перенесён в StorySwipeNeighbors (единый кадр со сторис). */
@@ -45,6 +46,7 @@ export function StoriesViewersMode({
 				viewers={currentStory?.viewers || []}
 				panelY={panelY}
 				interactive={chromeInteractive}
+				onClose={onCloseViewersMode}
 				onScrollStateChange={onScrollStateChange}
 			/>
 		</StoriesViewersModeRoot>

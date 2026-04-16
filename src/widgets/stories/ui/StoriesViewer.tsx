@@ -129,6 +129,7 @@ export function StoriesViewer({
 		viewersChromeOpacity,
 		viewersChromeTransform,
 		closeViewersMode,
+		openViewersMode,
 		swipeUpDragY,
 
 		pointerProps,
@@ -374,6 +375,7 @@ export function StoriesViewer({
 				<StoryViewersPreview
 					viewers={story.viewers || []}
 					opacity={previewOpacity}
+					onClick={openViewersMode}
 				/>
 			</StoryShell>
 		</MotionOverlay>

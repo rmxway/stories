@@ -30,6 +30,9 @@ function ActiveStoryProgressFill({
 }: ActiveStoryProgressFillProps) {
 	const scaleX = useMotionValue(0);
 	const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
+	const holdPausedRef = useRef(holdPaused);
+
+	holdPausedRef.current = holdPaused;
 
 	useEffect(() => {
 		scaleX.set(0.001);
@@ -49,7 +52,7 @@ function ActiveStoryProgressFill({
 		});
 		/* После сброса segmentReplayToken holdPaused может не меняться — второй эффект тогда не
 		 * перезапустится; сразу ставим на паузу, если нужно. */
-		if (holdPaused) {
+		if (holdPausedRef.current) {
 			controlsRef.current.pause();
 		}
 		return () => {
@@ -63,7 +66,6 @@ function ActiveStoryProgressFill({
 		isImageLoaded,
 		scaleX,
 		onSegmentComplete,
-		holdPaused,
 	]);
 
 	useEffect(() => {

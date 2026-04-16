@@ -4,13 +4,13 @@ export const STORIES_STORAGE_KEY = 'stories:seenIds';
 export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 
 /**
- * Один spring для `animate(swipeUpDragY)` и shared layout (layoutId):
- * иначе жест заканчивается одной кривой, а перетекание в миниатюру — другой (рваный стык).
+ * Единый transition для `animate(swipeUpDragY)` и shared layout (layoutId):
+ * открытие/закрытие режима зрителей должно идти одной и той же кривой без резкого добегания.
  */
 export const VIEWERS_CHROME_OPEN_SPRING = {
-	type: 'spring' as const,
-	stiffness: 340,
-	damping: 28,
+	type: 'tween' as const,
+	duration: 0.4,
+	ease: 'easeInOut' as const,
 } as const;
 
 export const STORIES_SLIDER_LAYOUT_TRANSITION = {

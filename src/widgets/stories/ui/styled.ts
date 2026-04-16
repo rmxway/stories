@@ -150,7 +150,7 @@ export const CloseButton = styled.button<{ $disabled?: boolean }>`
 	pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
 
 	${StyledIcon} {
-		font-size: clamp(35px, 10cqi, 70px);
+		font-size: clamp(35px, 8cqi, 70px);
 	}
 
 	&:hover {
@@ -408,14 +408,17 @@ export const StoryImageMain = styled(Image).attrs<{
 
 export const ViewersPreviewWrap = styled(motion.div)`
 	position: absolute;
-	bottom: 20px;
-	left: 20px;
+	bottom: 0;
+	left: 0;
 	display: flex;
 	align-items: center;
+	height: 50px;
 	gap: 12px;
 	z-index: 10;
-	pointer-events: none;
+	pointer-events: auto;
+	cursor: pointer;
 	user-select: none;
+	padding: 12px;
 `;
 
 export const ViewersPreviewAvatars = styled.div`
@@ -438,6 +441,7 @@ export const ViewersPreviewAvatarWrap = styled.div`
 export const ViewersPreviewCount = styled.div`
 	color: #fff;
 	font-size: 14px;
+	line-height: 1;
 	font-weight: 500;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	display: flex;

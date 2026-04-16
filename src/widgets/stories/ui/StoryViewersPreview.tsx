@@ -17,18 +17,28 @@ import {
 type Props = {
 	viewers: ReadonlyArray<{ id: string; name: string; img: string }>;
 	opacity: MotionValue<number>;
+	onClick: () => void;
 };
 
-export function StoryViewersPreview({ viewers, opacity }: Props) {
-	if (!viewers || viewers.length === 0) {
-		return null;
-	}
-
+export function StoryViewersPreview({ viewers, opacity, onClick }: Props) {
+	const hasViewers = Boolean(!viewers || viewers.length === 0);
 	const topViewers = viewers.slice(0, 3);
 	const count = viewers.length;
 
 	return (
-		<ViewersPreviewWrap style={{ opacity }}>
+		<ViewersPreviewWrap
+			data-viewers-interactive="true"
+			role="button"
+			tabIndex={0}
+			style={{ opacity }}
+			onClick={onClick}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					onClick();
+				}
+			}}
+		>
 			<ViewersPreviewAvatars>
 				{topViewers.map((viewer, index) => {
 					// We can use the img from viewer, but let's fallback to STORY_AVATAR_SRC if needed.
@@ -54,8 +64,13 @@ export function StoryViewersPreview({ viewers, opacity }: Props) {
 					);
 				})}
 			</ViewersPreviewAvatars>
+
 			<ViewersPreviewCount>
-				{formatStoryViewCount(count)}
+				{hasViewers ? (
+					<>Нет просмотров</>
+				) : (
+					formatStoryViewCount(count)
+				)}
 			</ViewersPreviewCount>
 		</ViewersPreviewWrap>
 	);

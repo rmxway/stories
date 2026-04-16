@@ -337,6 +337,13 @@ export function useStoryViewerInteractions({
 		});
 	}, [animateSwipeTo]);
 
+	const openViewersMode = useCallback(() => {
+		setIsVerticalSwipeDownCloseActive(false);
+		setIsVerticalSwipeUpActive(false);
+		setIsViewersMode(true);
+		void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX);
+	}, [animateSwipeTo]);
+
 	const beginHold = useCallback(() => {
 		suppressTapClickRef.current = false;
 		holdStartedAtRef.current = getNow();
@@ -643,6 +650,7 @@ export function useStoryViewerInteractions({
 		viewersChromeScale,
 		viewersChromeTransform,
 		closeViewersMode,
+		openViewersMode,
 
 		/**
 		 * Единый объект pointer events.

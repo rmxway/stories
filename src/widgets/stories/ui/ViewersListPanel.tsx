@@ -4,9 +4,11 @@ import { type MotionValue } from 'framer-motion';
 import Image from 'next/image';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
+import { Icon } from '@/shared/ui';
 
 import { STORY_AVATAR_SRC, StoryViewRecord } from '../constants';
 import {
+	CloseButton,
 	ViewersListItemAvatar,
 	ViewersListItemInfo,
 	ViewersListItemWrap,
@@ -22,6 +24,7 @@ type ViewersListPanelProps = {
 	panelY: MotionValue<number>;
 	/** Управление hit-area: false когда слой зрителей визуально выключен (остаётся смонтированным). */
 	interactive: boolean;
+	onClose: () => void;
 	onScrollStateChange?: (isScrolling: boolean) => void;
 };
 
@@ -29,6 +32,7 @@ export function ViewersListPanel({
 	viewers,
 	panelY,
 	interactive,
+	onClose,
 	onScrollStateChange,
 }: ViewersListPanelProps) {
 	const hasViewers = Boolean(viewers?.length);
@@ -57,6 +61,13 @@ export function ViewersListPanel({
 		>
 			<ViewersPanelHeader>
 				<ViewersPanelTitle>Просмотры</ViewersPanelTitle>
+				<CloseButton
+					type="button"
+					aria-label="Закрыть просмотры"
+					onClick={onClose}
+				>
+					<Icon icon="times-small" size={5} />
+				</CloseButton>
 			</ViewersPanelHeader>
 			<ViewersPanelList>
 				{hasViewers ? (
