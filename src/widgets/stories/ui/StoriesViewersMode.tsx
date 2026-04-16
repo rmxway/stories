@@ -3,7 +3,6 @@
 import { type MotionValue } from 'framer-motion';
 
 import { StoryItem } from '../constants';
-import { StoriesThumbnailsSlider } from './StoriesThumbnailsSlider';
 import { StoriesViewersModeRoot } from './styled';
 import { ViewersListPanel } from './ViewersListPanel';
 
@@ -28,15 +27,12 @@ export function StoriesViewersMode({
 	stories,
 	activeIndex,
 	panelY,
-	layerOpacity,
-	layerTransform,
 	isViewersMode,
 	isVerticalSwipeUpActive,
 	isVerticalSwipeDownCloseActive,
-	onChangeActiveIndex,
-	onCloseViewersMode,
 	onScrollStateChange,
 }: StoriesViewersModeProps) {
+	/* Горизонтальный трек миниатюр перенесён в StorySwipeNeighbors (единый кадр со сторис). */
 	const currentStory = stories[activeIndex];
 	const chromeInteractive =
 		isViewersMode ||
@@ -44,17 +40,7 @@ export function StoriesViewersMode({
 		isVerticalSwipeDownCloseActive;
 
 	return (
-		<StoriesViewersModeRoot
-			initial={false}
-			style={{ opacity: layerOpacity, transform: layerTransform }}
-		>
-			<StoriesThumbnailsSlider
-				stories={stories}
-				activeIndex={activeIndex}
-				interactive={chromeInteractive}
-				onChangeActiveIndex={onChangeActiveIndex}
-				onCloseViewersMode={onCloseViewersMode}
-			/>
+		<StoriesViewersModeRoot>
 			<ViewersListPanel
 				viewers={currentStory?.viewers || []}
 				panelY={panelY}

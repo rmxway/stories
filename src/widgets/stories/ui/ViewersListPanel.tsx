@@ -39,7 +39,8 @@ export function ViewersListPanel({
 			style={{
 				y: panelY,
 				pointerEvents: interactive ? 'auto' : 'none',
-			}}
+				opacity: interactive ? 1 : 0,
+			}}			
 			// When user starts touching the list, we might want to stop the drag to close viewers
 			onPointerDown={(e) => {
 				e.stopPropagation();

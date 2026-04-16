@@ -3,6 +3,20 @@ export const STORIES_STORAGE_KEY = 'stories:seenIds';
 /** Shared layout id (Framer Motion) между превью и оболочкой просмотра сторис. */
 export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 
+/**
+ * Один spring для `animate(swipeUpDragY)` и shared layout (layoutId):
+ * иначе жест заканчивается одной кривой, а перетекание в миниатюру — другой (рваный стык).
+ */
+export const VIEWERS_CHROME_OPEN_SPRING = {
+	type: 'spring' as const,
+	stiffness: 340,
+	damping: 28,
+} as const;
+
+export const STORIES_SLIDER_LAYOUT_TRANSITION = {
+	layout: VIEWERS_CHROME_OPEN_SPRING,
+} as const;
+
 export const STORY_DURATION_SEC = 5;
 export const STORY_INFO_HIDE_DELAY_MS = 300;
 

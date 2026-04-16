@@ -15,19 +15,24 @@ import {
 	useState,
 } from 'react';
 
-/** Вертикальное смещение при свайпе вниз для закрытия (≥ 0). */
-export const DISMISS_DRAG_MAX_PX = 420;
-export const DISMISS_CLOSE_DISTANCE_PX = 110;
-export const DISMISS_CLOSE_VELOCITY_PX_S = 520;
+import { VIEWERS_CHROME_OPEN_SPRING } from '../constants';
 
-export const SWIPE_UP_DRAG_MAX_PX = -400;
+/** Вертикальное смещение при свайпе вниз для закрытия (≥ 0). */
+export const DISMISS_DRAG_MAX_PX = 320;
+export const DISMISS_CLOSE_DISTANCE_PX = 110;
+export const DISMISS_CLOSE_VELOCITY_PX_S = 420;
+
+export const SWIPE_UP_DRAG_MAX_PX = -500;
 export const VIEWERS_CHROME_SCALE_MIN = 0.8;
 export const VIEWERS_CHROME_SCALE_MAX = 1;
-export const SWIPE_UP_OPEN_DISTANCE_PX = -72;
-export const SWIPE_UP_OPEN_VELOCITY_PX_S = -320;
+export const SWIPE_UP_OPEN_DISTANCE_PX = -150;
+export const SWIPE_UP_OPEN_VELOCITY_PX_S = -420;
+const SWIPE_UP_REVEAL_FADE_END_RANGE_PX = 30;
 
-/** Порог начала жеста; вертикаль вверх распознаём мягче, чем «сброс» в горизонталь. */
+/** Порог начала жеста; вертикаль вверх/вниз используют одинаковое доминирование над горизонталью. */
 export const GESTURE_AXIS_LOCK_PX = 10;
+const VERTICAL_DOMINANCE_OVER_HORIZONTAL = 0.92;
+/** Свайп вниз с трека миниатюр даёт больше dx — не отменяем жест, если уже явно тянем вниз. */
 const HORIZONTAL_CANCEL_MIN_PX = 18;
 export const SHELL_MIN_SCALE = 0.92;
 export const OVERLAY_BASE_OPACITY = 0.92;
@@ -35,6 +40,7 @@ export const OVERLAY_DIMMEST_OPACITY = 0.34;
 
 const HOLD_SUPPRESS_CLICK_MS = 200;
 const VIEWERS_INTERACTIVE_ATTR = 'data-viewers-interactive';
+const STORIES_THUMB_STRIP_ATTR = 'data-stories-thumbnail-strip';
 
 type GestureMode =
 	| 'idle'
@@ -52,9 +58,15 @@ function isInsideViewersInteractiveTarget(target: EventTarget | null): boolean {
 		: false;
 }
 
+function isInsideStoriesThumbnailStrip(target: EventTarget | null): boolean {
+	return target instanceof Element
+		? Boolean(target.closest(`[${STORIES_THUMB_STRIP_ATTR}="true"]`))
+		: false;
+}
+
 function runTapIfNotSuppressed(
 	e: MouseEvent<HTMLButtonElement>,
-	suppressRef: React.RefObject<boolean | null>,
+	suppressRef: React.RefObject<boolean>,
 	action: () => void,
 ): void {
 	if (suppressRef.current) {
@@ -119,7 +131,7 @@ export function useStoryViewerInteractions({
 	 */
 	const storyScale = useTransform(swipeUpDragY, (v) => {
 		const t = swipeUpOpenProgress(v);
-		return 1 + (0.3 - 1) * t;
+		return 1 + (0.5 - 1) * t;
 	});
 
 	const storyY = useTransform(
@@ -127,16 +139,26 @@ export function useStoryViewerInteractions({
 		(v) => -100 * swipeUpOpenProgress(v),
 	);
 
-	/** Смещение панели зрителей по Y (px): от «ниже экрана» к 0 (вся дуга жеста до -400). */
-	const PANEL_OFFSCREEN_Y_PX = 420;
-	const panelY = useTransform(
-		swipeUpDragY,
-		[0, SWIPE_UP_DRAG_MAX_PX],
-		[PANEL_OFFSCREEN_Y_PX, 0],
-	);
+	/** Смещение панели зрителей по Y: 50% высоты окна в закрытом состоянии; тот же `t`, что у `storyScale` / `storyY`. */
+	const panelY = useTransform(swipeUpDragY, (v) => {
+		const t = swipeUpOpenProgress(v);
+		const offPx =
+			typeof window !== 'undefined' ? window.innerHeight * 0.5 : 0;
+		return (1 - t) * offPx;
+	});
 
 	const previewOpacity = useTransform(swipeUpDragY, (v) =>
 		Math.min(1, Math.max(0, 1 + v / SWIPE_UP_PREVIEW_FADE_RANGE_PX)),
+	);
+
+	const previewRevealOpacity = useTransform(
+		swipeUpDragY,
+		[
+			SWIPE_UP_DRAG_MAX_PX,
+			SWIPE_UP_DRAG_MAX_PX + SWIPE_UP_REVEAL_FADE_END_RANGE_PX,
+			0,
+		],
+		[0, 1, 1],
 	);
 
 	/**
@@ -162,19 +184,28 @@ export function useStoryViewerInteractions({
 		(s) => `scale(${s})`,
 	);
 
+	const prevActiveIndexRef = useRef(activeIndex);
+
+	/** Смена сториса: сброс dismiss; swipe вверх только если не режим зрителей. */
 	useEffect(() => {
 		dismissDragY.set(0);
-		if (isViewersMode) {
-			swipeUpDragY.set(SWIPE_UP_DRAG_MAX_PX);
-		} else {
-			swipeUpDragY.set(0);
-		}
 		setIsVerticalDismissActive(false);
 		setIsVerticalSwipeUpActive(false);
-		// Do NOT reset isViewersMode here — it should persist when switching stories
-		// via thumbnail while already in viewers mode. Only explicit closeViewersMode
-		// should turn it off.
+		if (!isViewersMode) {
+			swipeUpDragY.set(0);
+		}
 	}, [activeIndex, dismissDragY, isViewersMode, swipeUpDragY]);
+
+	/**
+	 * В режиме зрителей при смене кадра — сразу «полное» положение жеста.
+	 * Не трогаем swipe при первом входе в режим (там дорабатывает animateSwipeTo).
+	 */
+	useEffect(() => {
+		if (isViewersMode && prevActiveIndexRef.current !== activeIndex) {
+			swipeUpDragY.set(SWIPE_UP_DRAG_MAX_PX);
+		}
+		prevActiveIndexRef.current = activeIndex;
+	}, [activeIndex, isViewersMode, swipeUpDragY]);
 
 	const modeRef = useRef<GestureMode>('idle');
 	const startYRef = useRef(0);
@@ -226,7 +257,7 @@ export function useStoryViewerInteractions({
 						duration: 0.22,
 						ease: 'easeOut' as const,
 					}
-				: { type: 'spring' as const, damping: 28, stiffness: 340 };
+				: VIEWERS_CHROME_OPEN_SPRING;
 
 			return animate(swipeUpDragY, target, { ...config, onComplete });
 		},
@@ -262,10 +293,9 @@ export function useStoryViewerInteractions({
 				velocityY < SWIPE_UP_OPEN_VELOCITY_PX_S;
 
 			if (shouldOpen) {
-				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX, () => {
-					setIsViewersMode(true);
-					setIsVerticalSwipeUpActive(false);
-				});
+				setIsViewersMode(true);
+				setIsVerticalSwipeUpActive(false);
+				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX);
 			} else {
 				void animateSwipeTo(0, () => {
 					setIsViewersMode(false);
@@ -303,9 +333,9 @@ export function useStoryViewerInteractions({
 		void animateSwipeTo(0, () => {
 			setIsViewersMode(false);
 			setIsVerticalSwipeUpActive(false);
-			swipeUpDragY.set(0);
+			setIsVerticalSwipeDownCloseActive(false);
 		});
-	}, [animateSwipeTo, swipeUpDragY]);
+	}, [animateSwipeTo]);
 
 	const beginHold = useCallback(() => {
 		suppressTapClickRef.current = false;
@@ -350,7 +380,11 @@ export function useStoryViewerInteractions({
 				return false;
 			}
 			const t = e.target;
-			/* В режиме зрителей свайп вниз для выхода должен начинаться и с слайдера/панели. */
+			/* Рельс миниатюр: горизонтальный drag / локальный свайп вниз — не смешивать с вертикалью оболочки. */
+			if (isInsideStoriesThumbnailStrip(t) && !isViewersMode) {
+				return false;
+			}
+			/* Вне режима зрителей панель со `data-viewers-interactive` не запускает вертикаль оболочки (горизонтальный слайдер и т.д.). */
 			if (isInsideViewersInteractiveTarget(t) && !isViewersMode) {
 				return false;
 			}
@@ -394,7 +428,8 @@ export function useStoryViewerInteractions({
 			if (m === 'pending') {
 				if (
 					dy > GESTURE_AXIS_LOCK_PX &&
-					Math.abs(dy) > Math.abs(dx) * 1.05
+					Math.abs(dy) >
+						Math.abs(dx) * VERTICAL_DOMINANCE_OVER_HORIZONTAL
 				) {
 					if (isViewersMode) {
 						modeRef.current = 'verticalSwipeDownCloseViewers';
@@ -409,7 +444,8 @@ export function useStoryViewerInteractions({
 					}
 				} else if (
 					dy < -GESTURE_AXIS_LOCK_PX &&
-					Math.abs(dy) > Math.abs(dx) * 0.92
+					Math.abs(dy) >
+						Math.abs(dx) * VERTICAL_DOMINANCE_OVER_HORIZONTAL
 				) {
 					if (!isViewersMode) {
 						modeRef.current = 'verticalSwipeUp';
@@ -420,9 +456,10 @@ export function useStoryViewerInteractions({
 				} else if (
 					Math.abs(dx) >= HORIZONTAL_CANCEL_MIN_PX &&
 					Math.abs(dx) > Math.abs(dy) * 1.35 &&
-					dy >= -GESTURE_AXIS_LOCK_PX
+					dy >= -GESTURE_AXIS_LOCK_PX &&
+					/* Не сбрасываем закрытие зрителей: по рельсу часто идёт диагональ с dx от слайдера. */
+					!(isViewersMode && dy > GESTURE_AXIS_LOCK_PX)
 				) {
-					/* Явный горизонтальный жест — отменяем вертикаль, не трогаем чисто вертикальный дрейф вверх. */
 					modeRef.current = 'idle';
 				}
 			}
@@ -601,6 +638,7 @@ export function useStoryViewerInteractions({
 		storyY,
 		panelY,
 		previewOpacity,
+		previewRevealOpacity,
 		viewersChromeOpacity,
 		viewersChromeScale,
 		viewersChromeTransform,

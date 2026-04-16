@@ -1,119 +1,137 @@
 'use client';
 
 import { type MotionValue, useTransform } from 'framer-motion';
-import Image from 'next/image';
-
-import { getBlurDataURL } from '@/lib/getBlurDataURL';
+import { useCallback, useMemo } from 'react';
 
 import { type StoryItem } from '../constants';
+import { useStoriesThumbnailsSlider } from '../lib/useStoriesThumbnailsSlider';
 import { SWIPE_UP_DRAG_MAX_PX } from '../lib/useStoryViewerInteractions';
-import { StoryNeighborCard, StoryNeighborImageInner } from './styled';
+import { useViewersThumbnailStripInteraction } from '../lib/useViewersThumbnailStripInteraction';
+import { StoryThumbnailRailItem } from './StoryThumbnailRailItem';
+import { StoriesSliderTrack, StorySwipeSliderContent, StorySwipeSliderWrap } from './styled';
 
 type StorySwipeNeighborsProps = {
 	stories: readonly StoryItem[];
 	activeIndex: number;
 	swipeUpDragY: MotionValue<number>;
-	neighborInteractionsEnabled: boolean;
-	/** В полностью открытом режиме миниатюр соседние превью не показываем. */
+	/**
+	 * Как `data-viewers-interactive` у слайдера: горизонтальный drag не стартует вертикальный жест
+	 * закрытия/свайпа вверх на оболочке.
+	 */
+	interactive: boolean;
 	isViewersMode: boolean;
-	onGoPrevious: () => void;
-	onGoNext: () => void;
+	onChangeActiveIndex: (index: number) => void;
+	/** Тап по центральной миниатюре — выход из полного режима зрителей (как в StoriesThumbnailsSlider). */
+	onCloseViewersMode: () => void;
 };
 
 export function StorySwipeNeighbors({
 	stories,
 	activeIndex,
 	swipeUpDragY,
-	neighborInteractionsEnabled,
+	interactive,
 	isViewersMode,
-	onGoPrevious,
-	onGoNext,
+	onChangeActiveIndex,
+	onCloseViewersMode,
 }: StorySwipeNeighborsProps) {
-	const prev = activeIndex > 0 ? stories[activeIndex - 1] : null;
-	const next =
-		activeIndex < stories.length - 1 ? stories[activeIndex + 1] : null;
+	const {
+		sliderX,
+		maxDragLeft,
+		itemStridePx,
+		sliderTrackRef,
+		onDragStart,
+		onDragEnd,
+		onPointerCancel,
+	} = useStoriesThumbnailsSlider({
+		activeIndex,
+		storiesLength: stories.length,
+		onChangeActiveIndex,
+	});
 
-	const opacity = useTransform(
-		swipeUpDragY,
-		[0, -32, SWIPE_UP_DRAG_MAX_PX],
-		[0, 0.46, 0.55],
+	const {
+		allowThumbClickRef,
+		stripPointerProps,
+		wrapDragStart,
+		wrapDragEnd,
+	} = useViewersThumbnailStripInteraction({
+		isViewersMode,
+		onCloseViewersMode,
+	});
+
+	const dragStart = useMemo(
+		() => wrapDragStart(onDragStart),
+		[onDragStart, wrapDragStart],
 	);
-	const scale = useTransform(
-		swipeUpDragY,
-		[0, SWIPE_UP_DRAG_MAX_PX],
-		[0.80, 0.95],
+	const dragEnd = useMemo(
+		() => wrapDragEnd(onDragEnd),
+		[onDragEnd, wrapDragEnd],
 	);
 
-	if (isViewersMode) {
+	const onPointerCancelCombined = useCallback(() => {
+		onPointerCancel();
+		window.setTimeout(() => {
+			allowThumbClickRef.current = true;
+		}, 70);
+	}, [allowThumbClickRef, onPointerCancel]);
+
+	const swipeRevealOpacity = useTransform(
+		swipeUpDragY,
+		[0, -28, SWIPE_UP_DRAG_MAX_PX],
+		[0, 0, 1],
+	);
+
+	if (stories.length <= 1) {
 		return null;
 	}
 
-	if (!prev && !next) {
-		return null;
-	}
-
-	const pointerEvents = neighborInteractionsEnabled ? 'auto' : 'none';
-
 	return (
-		<>
-			{prev ? (
-				<StoryNeighborCard
-					type="button"
-					$side="left"
-					aria-label="Предыдущий сторис"
-					tabIndex={neighborInteractionsEnabled ? 0 : -1}
-					style={{
-						y: '-50%',
-						opacity,
-						scale,
-						pointerEvents,
-					}}
-					onClick={(e) => {
-						e.stopPropagation();
-						onGoPrevious();
-					}}
-				>
-					<NeighborThumb src={prev.src} />
-				</StoryNeighborCard>
-			) : null}
-			{next ? (
-				<StoryNeighborCard
-					type="button"
-					$side="right"
-					aria-label="Следующий сторис"
-					tabIndex={neighborInteractionsEnabled ? 0 : -1}
-					style={{
-						y: '-50%',
-						opacity,
-						scale,
-						pointerEvents,
-					}}
-					onClick={(e) => {
-						e.stopPropagation();
-						onGoNext();
-					}}
-				>
-					<NeighborThumb src={next.src} />
-				</StoryNeighborCard>
-			) : null}
-		</>
-	);
-}
-
-function NeighborThumb({ src }: { src: string }) {
-	const blur = getBlurDataURL(src);
-
-	return (
-		<StoryNeighborImageInner>
-			<Image
-				src={src}
-				alt=""
-				fill
-				sizes="88px"
-				placeholder={blur ? 'blur' : 'empty'}
-				blurDataURL={blur}
-				style={{ objectFit: 'cover' }}
-			/>
-		</StoryNeighborImageInner>
+		<StorySwipeSliderContent>
+			<StorySwipeSliderWrap
+				data-stories-thumbnail-strip="true"
+				data-viewers-interactive={interactive ? 'true' : undefined}
+				drag={interactive ? 'x' : false}
+				dragConstraints={{ left: maxDragLeft, right: 0 }}
+				dragElastic={0.12}
+				dragMomentum={false}
+				dragSnapToOrigin={false}
+				dragTransition={{
+					power: 0.2,
+					timeConstant: 200,
+					bounceDamping: 40,
+				}}
+				style={{
+					x: sliderX,
+					opacity: swipeRevealOpacity,
+					pointerEvents: interactive ? 'auto' : 'none',
+				}}
+				onDragStart={dragStart}
+				onDragEnd={dragEnd}
+				onPointerCancel={onPointerCancelCombined}
+				{...stripPointerProps}
+			>
+				<StoriesSliderTrack ref={sliderTrackRef}>
+					{stories.map((story, i) => (
+						<StoryThumbnailRailItem
+							key={story.id}
+							story={story}
+							index={i}
+							activeIndex={activeIndex}
+							sliderX={sliderX}
+							itemStridePx={itemStridePx}
+							onClick={() => {
+								if (!allowThumbClickRef.current) {
+									return;
+								}
+								if (i === activeIndex) {
+									onCloseViewersMode();
+								} else {
+									onChangeActiveIndex(i);
+								}
+							}}
+						/>
+					))}
+				</StoriesSliderTrack>
+			</StorySwipeSliderWrap>
+		</StorySwipeSliderContent>
 	);
 }

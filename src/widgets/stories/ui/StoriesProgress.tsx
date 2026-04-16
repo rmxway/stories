@@ -56,7 +56,15 @@ function ActiveStoryProgressFill({
 			controlsRef.current?.stop();
 			controlsRef.current = null;
 		};
-	}, [segmentIndex, segmentReplayToken, isImageLoaded, scaleX, onSegmentComplete, holdPaused]);
+		/* holdPaused не в deps: иначе каждое удержание перезапускает сегмент с 0 вместо pause(). */
+	}, [
+		segmentIndex,
+		segmentReplayToken,
+		isImageLoaded,
+		scaleX,
+		onSegmentComplete,
+		holdPaused,
+	]);
 
 	useEffect(() => {
 		const c = controlsRef.current;

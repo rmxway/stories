@@ -1,5 +1,4 @@
-const EDITABLE_SELECTOR =
-	'input, textarea, select, [contenteditable="true"], [contenteditable=""]';
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]';
 
 export function isEditableTarget(target: EventTarget | null): boolean {
 	if (!(target instanceof HTMLElement)) {

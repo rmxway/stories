@@ -1,13 +1,25 @@
 'use client';
 
 import { animate, useMotionValue, useReducedMotion } from 'framer-motion';
-import { useCallback, useEffect, useRef } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react';
 
-/** Ширина карточки + зазор (должно совпадать с CSS трека). */
-export const STORIES_THUMB_CARD_WIDTH_PX = 140;
-export const STORIES_THUMB_GAP_PX = 16;
-export const STORIES_THUMB_ITEM_STRIDE_PX =
-	STORIES_THUMB_CARD_WIDTH_PX + STORIES_THUMB_GAP_PX;
+const STORIES_THUMB_ASPECT_H_OVER_W = 1.8;
+const TRACK_GAP_PX = 30;
+
+function getStoriesThumbStrideFallbackPx(): number {
+	const assumedViewportH = 812;
+	const stripHeightPx = assumedViewportH * 0.5;
+	const cardWidthPx = stripHeightPx / STORIES_THUMB_ASPECT_H_OVER_W;
+	return cardWidthPx + TRACK_GAP_PX;
+}
+
+const INITIAL_ITEM_STRIDE_PX = getStoriesThumbStrideFallbackPx();
 
 const SWIPE_VELOCITY_BLEND = 0.18;
 
@@ -33,7 +45,16 @@ function resolveNextIndexAfterSwipe(input: {
 function snapSpringConfig(reducedMotion: boolean) {
 	return reducedMotion
 		? { type: 'tween' as const, duration: 0.22, ease: 'easeOut' as const }
-		: { type: 'spring' as const, damping: 28, stiffness: 380 };
+		: { type: 'spring' as const, damping: 30, stiffness: 300 };
+}
+
+function parseGapPx(track: HTMLElement): number {
+	const g = getComputedStyle(track).gap;
+	if (!g || g === 'normal') {
+		return TRACK_GAP_PX;
+	}
+	const n = Number.parseFloat(g);
+	return Number.isFinite(n) ? n : TRACK_GAP_PX;
 }
 
 type UseStoriesThumbnailsSliderArgs = {
@@ -47,27 +68,84 @@ export function useStoriesThumbnailsSlider({
 	storiesLength,
 	onChangeActiveIndex,
 }: UseStoriesThumbnailsSliderArgs) {
-	const sliderX = useMotionValue(0);
+	const [itemStridePx, setItemStridePx] = useState(INITIAL_ITEM_STRIDE_PX);
+	const sliderTrackRef = useRef<HTMLDivElement>(null);
+	const sliderX = useMotionValue(-activeIndex * INITIAL_ITEM_STRIDE_PX);
 	const reducedMotion = useReducedMotion() ?? false;
 	const isDraggingRef = useRef(false);
+	const lastMeasuredStrideRef = useRef<number | null>(null);
+	const sliderXSnapAnimationRef = useRef<ReturnType<typeof animate> | null>(
+		null,
+	);
 
-	const itemStridePx = STORIES_THUMB_ITEM_STRIDE_PX;
+	useLayoutEffect(() => {
+		lastMeasuredStrideRef.current = null;
+		const track = sliderTrackRef.current;
+		const first = track?.firstElementChild as HTMLElement | undefined;
+		if (!track || !first) {
+			return;
+		}
+
+		const measure = (): void => {
+			if (isDraggingRef.current) {
+				return;
+			}
+			const w = first.offsetWidth;
+			const gap = parseGapPx(track);
+			if (w <= 0) {
+				return;
+			}
+			const next = w + gap;
+			if (
+				lastMeasuredStrideRef.current !== null &&
+				Math.abs(lastMeasuredStrideRef.current - next) < 0.5
+			) {
+				return;
+			}
+			lastMeasuredStrideRef.current = next;
+			setItemStridePx(next);
+		};
+
+		measure();
+		const ro = new ResizeObserver(measure);
+		ro.observe(track);
+		ro.observe(first);
+		return () => ro.disconnect();
+	}, [storiesLength]);
+
+	const animateSliderXToTarget = useCallback(
+		(targetX: number) => {
+			if (Math.abs(sliderX.get() - targetX) < 0.5) {
+				sliderXSnapAnimationRef.current?.stop();
+				sliderXSnapAnimationRef.current = null;
+				return;
+			}
+			sliderXSnapAnimationRef.current?.stop();
+			sliderXSnapAnimationRef.current = animate(
+				sliderX,
+				targetX,
+				snapSpringConfig(reducedMotion),
+			);
+		},
+		[reducedMotion, sliderX],
+	);
 
 	useEffect(() => {
 		if (isDraggingRef.current) {
 			return;
 		}
-		const targetX = -activeIndex * itemStridePx;
-		void animate(sliderX, targetX, snapSpringConfig(reducedMotion));
-	}, [activeIndex, itemStridePx, reducedMotion, sliderX]);
+		animateSliderXToTarget(-activeIndex * itemStridePx);
+	}, [activeIndex, animateSliderXToTarget, itemStridePx]);
+
+	useEffect(() => {
+		return () => {
+			sliderXSnapAnimationRef.current?.stop();
+		};
+	}, []);
 
 	const snapToActiveIndex = useCallback(() => {
-		void animate(
-			sliderX,
-			-activeIndex * itemStridePx,
-			snapSpringConfig(reducedMotion),
-		);
-	}, [activeIndex, itemStridePx, reducedMotion, sliderX]);
+		animateSliderXToTarget(-activeIndex * itemStridePx);
+	}, [activeIndex, animateSliderXToTarget, itemStridePx]);
 
 	const onDragStart = useCallback(() => {
 		isDraggingRef.current = true;
@@ -96,7 +174,9 @@ export function useStoriesThumbnailsSlider({
 			if (nextIndex !== activeIndex) {
 				onChangeActiveIndex(nextIndex);
 			} else {
-				snapToActiveIndex();
+				requestAnimationFrame(() => {
+					snapToActiveIndex();
+				});
 			}
 		},
 		[
@@ -113,7 +193,9 @@ export function useStoriesThumbnailsSlider({
 			return;
 		}
 		isDraggingRef.current = false;
-		snapToActiveIndex();
+		requestAnimationFrame(() => {
+			snapToActiveIndex();
+		});
 	}, [snapToActiveIndex]);
 
 	const maxDragLeft = -Math.max(0, (storiesLength - 1) * itemStridePx);
@@ -121,6 +203,8 @@ export function useStoriesThumbnailsSlider({
 	return {
 		sliderX,
 		maxDragLeft,
+		itemStridePx,
+		sliderTrackRef,
 		onDragStart,
 		onDragEnd,
 		onPointerCancel,

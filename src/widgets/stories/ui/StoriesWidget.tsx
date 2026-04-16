@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, LayoutGroup } from 'framer-motion';
+import { LayoutGroup } from 'framer-motion';
 import {
 	useCallback,
 	useEffect,
@@ -173,22 +173,21 @@ export function StoriesWidget() {
 					onOpen={handleOpen}
 				/>
 			)}
-			<AnimatePresence>
-				{isOpen ? (
-					<StoriesViewer
-						key="stories-viewer"
-						stories={STORIES}
-						activeIndex={activeIndex}
-						segmentReplayToken={segmentReplayToken}
-						onClose={handleClose}
-						onProgressComplete={handleProgressComplete}
-						onTapPrevious={goToPreviousStory}
-						onTapNext={goToNextStory}
-						onChangeActiveIndex={goToIndex}
-						onResetSegmentTimer={replayCurrentSegment}
-					/>
-				) : null}
-			</AnimatePresence>
+
+			{isOpen ? (
+				<StoriesViewer
+					key="stories-viewer"
+					stories={STORIES}
+					activeIndex={activeIndex}
+					segmentReplayToken={segmentReplayToken}
+					onClose={handleClose}
+					onProgressComplete={handleProgressComplete}
+					onTapPrevious={goToPreviousStory}
+					onTapNext={goToNextStory}
+					onChangeActiveIndex={goToIndex}
+					onResetSegmentTimer={replayCurrentSegment}
+				/>
+			) : null}
 		</LayoutGroup>
 	);
 }

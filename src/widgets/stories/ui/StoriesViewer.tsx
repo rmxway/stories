@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
 	type ComponentProps,
 	useEffect,
@@ -10,13 +10,16 @@ import {
 } from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
-import { FadeInOutVariant, ImageFadeVariant } from '@/shared/lib/framer-motion';
+import {
+	FadeInOutVariant,
+	ImageFadeVariant,
+	storyChromeVariants,
+} from '@/shared/lib/framer-motion';
 import { Flexbox, Icon, Space } from '@/shared/ui';
 
 import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
-	STORY_INFO_HIDE_DELAY_MS,
 	type StoryItem,
 } from '../constants';
 import {
@@ -26,6 +29,7 @@ import {
 import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
 import { StoriesViewersMode } from './StoriesViewersMode';
+import { StorySwipeNeighbors } from './StorySwipeNeighbors';
 import { StoryViewersPreview } from './StoryViewersPreview';
 import {
 	CloseButton,
@@ -119,12 +123,13 @@ export function StoriesViewer({
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
 		storyScale,
-		storyY,
 		panelY,
 		previewOpacity,
+		previewRevealOpacity,
 		viewersChromeOpacity,
 		viewersChromeTransform,
 		closeViewersMode,
+		swipeUpDragY,
 
 		pointerProps,
 		onTapPreviousGuarded,
@@ -136,26 +141,35 @@ export function StoriesViewer({
 		onTapNext,
 	});
 
+	const progressPaused =
+		holdPaused ||
+		isVerticalSwipeUpActive ||
+		isViewersMode ||
+		isVerticalSwipeDownCloseActive;
+
+	/** Только для паузы по удержанию: не даём onResetSegmentTimer обнулить сегмент при скрытии шапки. */
+	const suppressSegmentResetOnHideCompleteRef = useRef(false);
+
 	useEffect(() => {
 		if (isViewersMode) {
+			/* Режим зрителей: после скрытия прогресса нужен сброс сегмента (как раньше при свайпе вверх). */
+			suppressSegmentResetOnHideCompleteRef.current = false;
 			setIsStoryInfoVisible(false);
 			return;
 		}
 
 		/* Как при свайпе вниз (dismiss): жест не смешиваем с автоскрытием по удержанию. */
 		if (!holdPaused || isVerticalDismissActive || isVerticalSwipeUpActive) {
+			suppressSegmentResetOnHideCompleteRef.current = false;
 			setIsStoryInfoVisible(true);
 			return;
 		}
 
-		// Обычный режим: удержание без вертикального жеста — автоскрытие шапки/прогресса
-		setIsStoryInfoVisible(true);
-
-		const timeoutId = window.setTimeout(() => {
-			setIsStoryInfoVisible(false);
-		}, STORY_INFO_HIDE_DELAY_MS);
-
-		return () => window.clearTimeout(timeoutId);
+		/* Удержание без вертикального жеста — сразу прячем шапку/прогресс.
+		 * Раньше был setTimeout(300ms) после setVisible(true): по окончании анимации вызывался
+		 * onResetSegmentTimer и сегмент обнулялся во время паузы. */
+		suppressSegmentResetOnHideCompleteRef.current = true;
+		setIsStoryInfoVisible(false);
 	}, [
 		activeIndex,
 		holdPaused,
@@ -163,12 +177,6 @@ export function StoriesViewer({
 		isVerticalSwipeUpActive,
 		isViewersMode,
 	]);
-
-	const progressPaused =
-		holdPaused ||
-		isVerticalSwipeUpActive ||
-		isViewersMode ||
-		isVerticalSwipeDownCloseActive;
 
 	/** Прогревает HTTP-кэш для всех кадров при открытии (меньше повторных запросов при листании). */
 	useEffect(() => {
@@ -210,9 +218,6 @@ export function StoriesViewer({
 				{...pointerProps}
 			>
 				<motion.div
-					variants={FadeInOutVariant}
-					initial="hidden"
-					animate={isStoryInfoVisible ? 'visible' : 'hidden'}
 					style={{
 						zIndex: 40,
 						opacity: previewOpacity,
@@ -220,85 +225,101 @@ export function StoriesViewer({
 							? 'auto'
 							: 'none',
 					}}
-					onAnimationComplete={() => {
-						if (!isStoryInfoVisibleRef.current) {
-							onResetSegmentTimer();
-						}
-					}}
 				>
-					<StoriesProgress
-						count={stories.length}
-						activeIndex={activeIndex}
-						segmentReplayToken={segmentReplayToken}
-						holdPaused={progressPaused}
-						isImageLoaded={isContentReady}
-						onSegmentComplete={onProgressComplete}
-					/>
+					<motion.div
+						variants={storyChromeVariants}
+						layout={false}
+						animate={isStoryInfoVisible ? 'visible' : 'hidden'}
+						onAnimationComplete={() => {
+							if (
+								!isStoryInfoVisibleRef.current &&
+								!suppressSegmentResetOnHideCompleteRef.current
+							) {
+								onResetSegmentTimer();
+							}
+						}}
+					>
+						<StoriesProgress
+							count={stories.length}
+							activeIndex={activeIndex}
+							segmentReplayToken={segmentReplayToken}
+							holdPaused={progressPaused}
+							isImageLoaded={isContentReady}
+							onSegmentComplete={onProgressComplete}
+						/>
 
-					<StoryInfo>
-						<Flexbox $gap={10} $align="center" $nowrap>
-							<StoryInfoAvatarWrap>
-								<StoryAvatarImage
-									ref={avatarImgRef}
-									src={STORY_AVATAR_SRC}
-									alt=""
-									fill
-									sizes="48px"
-									placeholder="blur"
-									blurDataURL={avatarBlur}
-									onLoad={onLoadAvatar}
-									onError={onErrorAvatar}
-								/>
-							</StoryInfoAvatarWrap>
-							<Flexbox $direction="column" $gap={2}>
-								<span>
-									<strong>Ваша история</strong> &bull;{' '}
-									{activeIndex + 1}/{stories.length}
-								</span>
-								<span>{story.time}</span>
+						<StoryInfo>
+							<Flexbox $gap={10} $align="center" $nowrap>
+								<StoryInfoAvatarWrap>
+									<StoryAvatarImage
+										ref={avatarImgRef}
+										src={STORY_AVATAR_SRC}
+										alt=""
+										fill
+										sizes="48px"
+										placeholder="blur"
+										blurDataURL={avatarBlur}
+										onLoad={onLoadAvatar}
+										onError={onErrorAvatar}
+									/>
+								</StoryInfoAvatarWrap>
+								<Flexbox $direction="column" $gap={2}>
+									<span>
+										<strong>Ваша история</strong> &bull;{' '}
+										{activeIndex + 1}/{stories.length}
+									</span>
+									<span>{story.time}</span>
+								</Flexbox>
+								<Space />
+								<CloseButton
+									type="button"
+									aria-label="Закрыть"
+									$disabled={
+										isVerticalSwipeUpActive || isViewersMode
+									}
+									onClick={onClose}
+								>
+									<Icon icon="times-small" size={5} />
+								</CloseButton>
 							</Flexbox>
-							<Space />
-							<CloseButton
-								type="button"
-								aria-label="Закрыть"
-								$disabled={
-									isVerticalSwipeUpActive || isViewersMode
-								}
-								onClick={onClose}
-							>
-								<Icon icon="times-small" size={5} />
-							</CloseButton>
-						</Flexbox>
-					</StoryInfo>
+						</StoryInfo>
+					</motion.div>
 				</motion.div>
 
-				<StoryImageWrap
-					layout={false}
-					$viewersMode={isViewersMode}
-					style={{
-						y: storyY,
-						opacity: previewOpacity,
-					}}
-				>
+				{/* LayoutGroup: пара layoutId слайдера отдельно от оболочки превью (STORIES_SHELL_LAYOUT_ID). */}
+
+				<StoryImageWrap $viewersMode={isViewersMode}>
+					<StorySwipeNeighbors
+						stories={stories}
+						activeIndex={activeIndex}
+						swipeUpDragY={swipeUpDragY}
+						interactive={
+							isVerticalSwipeUpActive ||
+							isViewersMode ||
+							isVerticalSwipeDownCloseActive
+						}
+						isViewersMode={isViewersMode}
+						onChangeActiveIndex={onChangeActiveIndex}
+						onCloseViewersMode={closeViewersMode}
+					/>
 					<StoryImageInner
 						style={{
 							scale: storyScale,
+							opacity: previewRevealOpacity,
+							transformOrigin: 'top center',
 						}}
 					>
-						<AnimatePresence>
-							{phase === 'loading' ? (
-								<StorySkeletonMotionWrap
-									key="story-skeleton"
-									variants={ImageFadeVariant}
-									initial="hidden"
-									animate="visible"
-									exit="hidden"
-								>
-									<StorySkeleton aria-hidden />
-									<ShimmerOverlay aria-hidden />
-								</StorySkeletonMotionWrap>
-							) : null}
-						</AnimatePresence>
+						<StorySkeletonMotionWrap
+							key="story-skeleton"
+							variants={ImageFadeVariant}
+							initial="hidden"
+							animate={phase === 'loading' ? 'visible' : 'hidden'}
+							exit="hidden"
+						>
+							<StorySkeleton aria-hidden />
+							<ShimmerOverlay aria-hidden />
+						</StorySkeletonMotionWrap>
+
 						<StoryImageMain
 							key={story.id}
 							ref={mainImgRef}

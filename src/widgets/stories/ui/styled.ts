@@ -15,6 +15,12 @@ const storyShimmerSlide = keyframes`
 	}
 `;
 
+const STORY_CARD_ASPECT_RATIO_H_OVER_W = 1.8;
+const STORY_CARD_ASPECT_RATIO = `1/${STORY_CARD_ASPECT_RATIO_H_OVER_W}`;
+const STORY_CARD_MIN_WIDTH = '160px';
+const STORY_CARD_HEIGHT_AT_HALF_VIEWPORT = 'min(50dvh, 50%)';
+const STORY_CARD_WIDTH_AT_HALF_VIEWPORT = `max(${STORY_CARD_MIN_WIDTH}, calc(50dvh / ${STORY_CARD_ASPECT_RATIO_H_OVER_W}))`;
+
 export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
 	display: flex;
@@ -102,8 +108,8 @@ export const StoryShell = styled(motion.div)`
 	z-index: 1;
 	height: 100%;
 	max-width: 100%;
-	min-width: 160px;
-	aspect-ratio: 1/1.8;
+	min-width: ${STORY_CARD_MIN_WIDTH};
+	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
 	max-height: 100dvh;
 	display: flex;
 	flex-direction: column;
@@ -257,6 +263,10 @@ export const StoryImageWrap = styled(motion.div)<{ $viewersMode?: boolean }>`
 	-webkit-touch-callout: none;
 	pointer-events: ${({ $viewersMode }) => ($viewersMode ? 'none' : 'auto')};
 	transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 `;
 
 export const StoryImageInner = styled(motion.div)`
@@ -267,40 +277,7 @@ export const StoryImageInner = styled(motion.div)`
 	width: 100%;
 	border-radius: 8px;
 	overflow: hidden;
-`;
-
-/** Соседние кадры при свайпе вверх: слева/справа от уменьшающегося основного. */
-export const StoryNeighborCard = styled(motion.button)<{
-	$side: 'left' | 'right';
-}>`
-	${({ $side }) => css`
-		position: absolute;
-		top: 50%;
-		width: clamp(64px, 19cqi, 88px);
-		aspect-ratio: 1 / 1.8;
-		border: none;
-		border-radius: 10px;
-		padding: 0;
-		overflow: hidden;
-		cursor: pointer;
-		z-index: 1;
-		box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38);
-		background: #141414;
-		-webkit-tap-highlight-color: transparent;
-
-		${$side === 'left'
-			? css`
-					left: clamp(6px, 1.5cqi, 14px);
-				`
-			: css`
-					right: clamp(6px, 1.5cqi, 14px);
-				`}
-	`}
-`;
-
-export const StoryNeighborImageInner = styled.div`
-	position: absolute;
-	inset: 0;
+	transform-origin: center center;
 `;
 
 export const StoryTapZone = styled.button<{
@@ -499,7 +476,7 @@ export const ViewersPanelContent = styled(motion.div)`
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: auto;
-	height: 35%;
+	height: 50%;
 	background: #1c1c1e;
 	border-top-left-radius: 16px;
 	border-top-right-radius: 16px;
@@ -606,30 +583,50 @@ export const StoriesSliderWrap = styled(motion.div)`
 	`}
 `;
 
-/** Горизонтальный трек: центрирование по ширине оболочки (100% = ширина слайдера). */
+export const StorySwipeSliderContent = styled.div`
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	min-height: 0;
+	height: ${STORY_CARD_HEIGHT_AT_HALF_VIEWPORT};
+	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
+	z-index: 0;
+`;
+
+export const StorySwipeSliderWrap = styled(motion.div)`
+	${() => css`
+		height: 100%;
+		box-sizing: border-box;
+		width: 100%;
+	`}
+`;
+
+/** Горизонтальный трек: центрирование активной миниатюры; размеры согласованы с `StoryThumbnailItemWrap`. */
 export const StoriesSliderTrack = styled.div`
 	${() => css`
+		position: relative;
 		display: flex;
-		flex-direction: row;
-		flex-shrink: 0;
-		align-items: center;
-		gap: 16px;
+		gap: 30px;
+		height: 100%;
 		width: max-content;
-		padding: 0 max(0px, calc((100% - 140px) / 2));
 	`}
 `;
 
 export const StoryThumbnailItemWrap = styled(motion.div)`
 	${() => css`
 		position: relative;
-		flex: 0 0 140px;
-		width: 140px;
-		aspect-ratio: 1 / 1.8;
-		border-radius: 8px;
+		max-width: 100%;
+		width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
+		aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
+		min-width: ${STORY_CARD_MIN_WIDTH};
+		border-radius: 4px;
+		overflow: hidden;
 		cursor: pointer;
 		-webkit-tap-highlight-color: transparent;
 
 		img {
+			object-fit: cover;
 			user-select: none;
 			-webkit-user-select: none;
 			-webkit-touch-callout: none;

@@ -48,17 +48,11 @@ export function useStorySlidePhase(src: string): {
 	mainImgRef: RefObject<HTMLImageElement | null>;
 } {
 	const [phase, setPhase] = useState<StorySlidePhase>('loading');
-	const [wiredSrc, setWiredSrc] = useState(src);
 	const mainImgRef = useRef<HTMLImageElement | null>(null);
 
-	if (wiredSrc !== src) {
-		setWiredSrc(src);
-		setPhase('loading');
-	}
-
 	useLayoutEffect(() => {
+		setPhase('loading');
 		if (!src) {
-			setPhase('loading');
 			return;
 		}
 		const el = mainImgRef.current;
@@ -67,7 +61,6 @@ export function useStorySlidePhase(src: string): {
 			setPhase('loaded');
 			return;
 		}
-		setPhase('loading');
 	}, [src]);
 
 	const onLoad = useCallback(() => {
@@ -96,12 +89,7 @@ export function useProgressiveAvatarPhase(src: string): {
 	onError: () => void;
 	imgRef: RefObject<HTMLImageElement | null>;
 } {
-	const [wiredSrc, setWiredSrc] = useState(src);
 	const imgRef = useRef<HTMLImageElement | null>(null);
-
-	if (wiredSrc !== src) {
-		setWiredSrc(src);
-	}
 
 	useLayoutEffect(() => {
 		if (!src) {
