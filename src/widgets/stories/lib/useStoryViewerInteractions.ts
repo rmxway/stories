@@ -26,7 +26,7 @@ export const SWIPE_UP_DRAG_MAX_PX = -500;
 export const VIEWERS_CHROME_SCALE_MIN = 0.8;
 export const VIEWERS_CHROME_SCALE_MAX = 1;
 export const SWIPE_UP_OPEN_DISTANCE_PX = -150;
-export const SWIPE_UP_OPEN_VELOCITY_PX_S = -420;
+export const SWIPE_UP_OPEN_VELOCITY_PX_S = -320;
 const SWIPE_UP_REVEAL_FADE_END_RANGE_PX = 30;
 
 /** Порог начала жеста; вертикаль вверх/вниз используют одинаковое доминирование над горизонталью. */
@@ -251,17 +251,12 @@ export function useStoryViewerInteractions({
 	/** Централизованная анимация для swipe up (режим зрителей). */
 	const animateSwipeTo = useCallback(
 		(target: number, onComplete?: () => void) => {
-			const config = reducedMotion
-				? {
-						type: 'tween' as const,
-						duration: 0.22,
-						ease: 'easeOut' as const,
-					}
-				: VIEWERS_CHROME_OPEN_SPRING;
-
-			return animate(swipeUpDragY, target, { ...config, onComplete });
+			return animate(swipeUpDragY, target, {
+				...VIEWERS_CHROME_OPEN_SPRING,
+				onComplete,
+			});
 		},
-		[swipeUpDragY, reducedMotion],
+		[swipeUpDragY],
 	);
 
 	const finishDismissOrSnap = useCallback(
@@ -338,9 +333,9 @@ export function useStoryViewerInteractions({
 	}, [animateSwipeTo]);
 
 	const openViewersMode = useCallback(() => {
-		setIsVerticalSwipeDownCloseActive(false);
-		setIsVerticalSwipeUpActive(false);
 		setIsViewersMode(true);
+		setIsVerticalSwipeUpActive(false);
+		setIsVerticalSwipeDownCloseActive(false);
 		void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX);
 	}, [animateSwipeTo]);
 
