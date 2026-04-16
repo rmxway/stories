@@ -1,6 +1,5 @@
 'use client';
 
-import { MotionValue } from 'framer-motion';
 import Image from 'next/image';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
@@ -8,20 +7,23 @@ import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import { STORY_AVATAR_SRC } from '../constants';
 import { formatStoryViewCount } from '../lib/formatStoryViewCount';
 import {
+	useStoriesViewerDomain,
+	useStoriesViewerInteraction,
+} from './StoriesViewerContext';
+import {
 	ViewersPreviewAvatars,
 	ViewersPreviewAvatarWrap,
 	ViewersPreviewCount,
 	ViewersPreviewWrap,
 } from './styled';
 
-type Props = {
-	viewers: ReadonlyArray<{ id: string; name: string; img: string }>;
-	opacity: MotionValue<number>;
-	onClick: () => void;
-};
+export function StoryViewersPreview() {
+	const { stories, activeIndex } = useStoriesViewerDomain();
+	const { previewOpacity, openViewersMode } = useStoriesViewerInteraction();
 
-export function StoryViewersPreview({ viewers, opacity, onClick }: Props) {
-	const hasViewers = Boolean(!viewers || viewers.length === 0);
+	const story = stories[activeIndex];
+	const viewers = story?.viewers ?? [];
+	const hasViewers = viewers.length > 0;
 	const topViewers = viewers.slice(0, 3);
 	const count = viewers.length;
 
@@ -30,19 +32,17 @@ export function StoryViewersPreview({ viewers, opacity, onClick }: Props) {
 			data-viewers-interactive="true"
 			role="button"
 			tabIndex={0}
-			style={{ opacity }}
-			onClick={onClick}
+			style={{ opacity: previewOpacity }}
+			onClick={openViewersMode}
 			onKeyDown={(e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					onClick();
+					openViewersMode();
 				}
 			}}
 		>
 			<ViewersPreviewAvatars>
 				{topViewers.map((viewer, index) => {
-					// We can use the img from viewer, but let's fallback to STORY_AVATAR_SRC if needed.
-					// Actually, the viewer has img, we use it directly.
 					const src = viewer.img || STORY_AVATAR_SRC;
 					const blur = getBlurDataURL(src);
 
@@ -58,7 +58,6 @@ export function StoryViewersPreview({ viewers, opacity, onClick }: Props) {
 								sizes="32px"
 								placeholder="blur"
 								blurDataURL={blur}
-								style={{ objectFit: 'cover' }}
 							/>
 						</ViewersPreviewAvatarWrap>
 					);
@@ -66,11 +65,7 @@ export function StoryViewersPreview({ viewers, opacity, onClick }: Props) {
 			</ViewersPreviewAvatars>
 
 			<ViewersPreviewCount>
-				{hasViewers ? (
-					<>Нет просмотров</>
-				) : (
-					formatStoryViewCount(count)
-				)}
+				{hasViewers ? formatStoryViewCount(count) : 'Нет просмотров'}
 			</ViewersPreviewCount>
 		</ViewersPreviewWrap>
 	);

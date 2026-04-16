@@ -26,8 +26,12 @@ import {
 	useProgressiveAvatarPhase,
 	useStorySlidePhase,
 } from '../lib/useStoryImagePreload';
-import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
 import { StoriesProgress } from './StoriesProgress';
+import {
+	StoriesViewerProvider,
+	useStoriesViewerDomain,
+	useStoriesViewerInteraction,
+} from './StoriesViewerContext';
 import { StoriesViewersMode } from './StoriesViewersMode';
 import { StorySwipeNeighbors } from './StorySwipeNeighbors';
 import { StoryViewersPreview } from './StoryViewersPreview';
@@ -77,7 +81,6 @@ type StoriesViewerProps = {
 	onTapPrevious: () => void;
 	onTapNext: () => void;
 	onChangeActiveIndex: (index: number) => void;
-	/** Сброс таймера сегмента после скрытия прогресса/шапки (см. onAnimationComplete). */
 	onResetSegmentTimer: () => void;
 };
 
@@ -92,6 +95,68 @@ export function StoriesViewer({
 	onChangeActiveIndex,
 	onResetSegmentTimer,
 }: StoriesViewerProps) {
+	const story = stories[activeIndex];
+	if (!story) {
+		return null;
+	}
+
+	const domain: StoriesViewerProps = {
+		stories,
+		activeIndex,
+		segmentReplayToken,
+		onClose,
+		onProgressComplete,
+		onTapPrevious,
+		onTapNext,
+		onChangeActiveIndex,
+		onResetSegmentTimer,
+	};
+
+	return (
+		<MotionOverlay
+			role="dialog"
+			aria-modal="true"
+			aria-label="Сторис"
+			aria-describedby="stories-viewer-desc"
+			variants={FadeInOutVariant}
+			initial="hidden"
+			animate="visible"
+			exit="hidden"
+		>
+			<StoriesViewerProvider {...domain}>
+				<StoriesViewerInner />
+			</StoriesViewerProvider>
+		</MotionOverlay>
+	);
+}
+
+function StoriesViewerInner() {
+	const {
+		stories,
+		activeIndex,
+		segmentReplayToken,
+		onClose,
+		onProgressComplete,
+		onResetSegmentTimer,
+	} = useStoriesViewerDomain();
+
+	const {
+		dismissDragY,
+		shellScale,
+		dimmerOpacity,
+		holdPaused,
+		isVerticalDismissActive,
+		isViewersMode,
+		isVerticalSwipeUpActive,
+		isVerticalSwipeDownCloseActive,
+		storyScale,
+		previewOpacity,
+		previewRevealOpacity,
+		pointerProps,
+		onTapPreviousGuarded,
+		onTapNextGuarded,
+	} = useStoriesViewerInteraction();
+
 	const story = stories[activeIndex];
 	const [leftTapPressed, setLeftTapPressed] = useState(false);
 	const [rightTapPressed, setRightTapPressed] = useState(false);
@@ -112,63 +177,27 @@ export function StoriesViewer({
 		[story?.src],
 	);
 
-	const {
-		dismissDragY,
-		shellScale,
-		dimmerOpacity,
-		holdPaused,
-		isVerticalDismissActive,
-
-		isViewersMode,
-		isVerticalSwipeUpActive,
-		isVerticalSwipeDownCloseActive,
-		storyScale,
-		panelY,
-		previewOpacity,
-		previewRevealOpacity,
-		viewersChromeOpacity,
-		viewersChromeTransform,
-		closeViewersMode,
-		openViewersMode,
-		swipeUpDragY,
-
-		pointerProps,
-		onTapPreviousGuarded,
-		onTapNextGuarded,
-	} = useStoryViewerInteractions({
-		activeIndex,
-		onClose,
-		onTapPrevious,
-		onTapNext,
-	});
-
 	const progressPaused =
 		holdPaused ||
 		isVerticalSwipeUpActive ||
 		isViewersMode ||
 		isVerticalSwipeDownCloseActive;
 
-	/** Только для паузы по удержанию: не даём onResetSegmentTimer обнулить сегмент при скрытии шапки. */
 	const suppressSegmentResetOnHideCompleteRef = useRef(false);
 
 	useEffect(() => {
 		if (isViewersMode) {
-			/* Режим зрителей: после скрытия прогресса нужен сброс сегмента (как раньше при свайпе вверх). */
 			suppressSegmentResetOnHideCompleteRef.current = false;
 			setIsStoryInfoVisible(false);
 			return;
 		}
 
-		/* Как при свайпе вниз (dismiss): жест не смешиваем с автоскрытием по удержанию. */
 		if (!holdPaused || isVerticalDismissActive || isVerticalSwipeUpActive) {
 			suppressSegmentResetOnHideCompleteRef.current = false;
 			setIsStoryInfoVisible(true);
 			return;
 		}
 
-		/* Удержание без вертикального жеста — сразу прячем шапку/прогресс.
-		 * Раньше был setTimeout(300ms) после setVisible(true): по окончании анимации вызывался
-		 * onResetSegmentTimer и сегмент обнулялся во время паузы. */
 		suppressSegmentResetOnHideCompleteRef.current = true;
 		setIsStoryInfoVisible(false);
 	}, [
@@ -179,7 +208,6 @@ export function StoriesViewer({
 		isViewersMode,
 	]);
 
-	/** Прогревает HTTP-кэш для всех кадров при открытии (меньше повторных запросов при листании). */
 	useEffect(() => {
 		if (typeof window === 'undefined') {
 			return;
@@ -196,16 +224,7 @@ export function StoriesViewer({
 	}
 
 	return (
-		<MotionOverlay
-			role="dialog"
-			aria-modal="true"
-			aria-label="Сторис"
-			aria-describedby="stories-viewer-desc"
-			variants={FadeInOutVariant}
-			initial="hidden"
-			animate="visible"
-			exit="hidden"
-		>
+		<>
 			<VisuallyHidden id="stories-viewer-desc">
 				Листайте стрелками влево и вправо. Escape закрывает окно.
 			</VisuallyHidden>
@@ -287,22 +306,8 @@ export function StoriesViewer({
 					</motion.div>
 				</motion.div>
 
-				{/* LayoutGroup: пара layoutId слайдера отдельно от оболочки превью (STORIES_SHELL_LAYOUT_ID). */}
-
 				<StoryImageWrap $viewersMode={isViewersMode}>
-					<StorySwipeNeighbors
-						stories={stories}
-						activeIndex={activeIndex}
-						swipeUpDragY={swipeUpDragY}
-						interactive={
-							isVerticalSwipeUpActive ||
-							isViewersMode ||
-							isVerticalSwipeDownCloseActive
-						}
-						isViewersMode={isViewersMode}
-						onChangeActiveIndex={onChangeActiveIndex}
-						onCloseViewersMode={closeViewersMode}
-					/>
+					<StorySwipeNeighbors />
 					<StoryImageInner
 						style={{
 							scale: storyScale,
@@ -356,28 +361,10 @@ export function StoriesViewer({
 					</StoryImageInner>
 				</StoryImageWrap>
 
-				<StoriesViewersMode
-					key="stories-viewers-layer"
-					stories={stories}
-					activeIndex={activeIndex}
-					panelY={panelY}
-					layerOpacity={viewersChromeOpacity}
-					layerTransform={viewersChromeTransform}
-					isViewersMode={isViewersMode}
-					isVerticalSwipeUpActive={isVerticalSwipeUpActive}
-					isVerticalSwipeDownCloseActive={
-						isVerticalSwipeDownCloseActive
-					}
-					onChangeActiveIndex={onChangeActiveIndex}
-					onCloseViewersMode={closeViewersMode}
-				/>
+				<StoriesViewersMode key="stories-viewers-layer" />
 
-				<StoryViewersPreview
-					viewers={story.viewers || []}
-					opacity={previewOpacity}
-					onClick={openViewersMode}
-				/>
+				<StoryViewersPreview />
 			</StoryShell>
-		</MotionOverlay>
+		</>
 	);
 }

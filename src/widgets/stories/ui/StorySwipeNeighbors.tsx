@@ -1,39 +1,33 @@
 'use client';
 
-import { type MotionValue, useTransform } from 'framer-motion';
+import { useTransform } from 'framer-motion';
 import { useCallback, useMemo } from 'react';
 
-import { type StoryItem } from '../constants';
 import { useStoriesThumbnailsSlider } from '../lib/useStoriesThumbnailsSlider';
 import { SWIPE_UP_DRAG_MAX_PX } from '../lib/useStoryViewerInteractions';
 import { useViewersThumbnailStripInteraction } from '../lib/useViewersThumbnailStripInteraction';
+import {
+	useStoriesViewerDomain,
+	useStoriesViewerInteraction,
+} from './StoriesViewerContext';
 import { StoryThumbnailRailItem } from './StoryThumbnailRailItem';
-import { StoriesSliderTrack, StorySwipeSliderContent, StorySwipeSliderWrap } from './styled';
+import {
+	StoriesSliderTrack,
+	StorySwipeSliderContent,
+	StorySwipeSliderWrap,
+} from './styled';
 
-type StorySwipeNeighborsProps = {
-	stories: readonly StoryItem[];
-	activeIndex: number;
-	swipeUpDragY: MotionValue<number>;
-	/**
-	 * Как `data-viewers-interactive` у слайдера: горизонтальный drag не стартует вертикальный жест
-	 * закрытия/свайпа вверх на оболочке.
-	 */
-	interactive: boolean;
-	isViewersMode: boolean;
-	onChangeActiveIndex: (index: number) => void;
-	/** Тап по центральной миниатюре — выход из полного режима зрителей (как в StoriesThumbnailsSlider). */
-	onCloseViewersMode: () => void;
-};
+export function StorySwipeNeighbors() {
+	const { stories, activeIndex, onChangeActiveIndex } =
+		useStoriesViewerDomain();
+	const {
+		swipeUpDragY,
+		isViewersMode,
+		isVerticalSwipeUpActive,
+		isVerticalSwipeDownCloseActive,
+		closeViewersMode,
+	} = useStoriesViewerInteraction();
 
-export function StorySwipeNeighbors({
-	stories,
-	activeIndex,
-	swipeUpDragY,
-	interactive,
-	isViewersMode,
-	onChangeActiveIndex,
-	onCloseViewersMode,
-}: StorySwipeNeighborsProps) {
 	const {
 		sliderX,
 		maxDragLeft,
@@ -55,7 +49,7 @@ export function StorySwipeNeighbors({
 		wrapDragEnd,
 	} = useViewersThumbnailStripInteraction({
 		isViewersMode,
-		onCloseViewersMode,
+		onCloseViewersMode: closeViewersMode,
 	});
 
 	const dragStart = useMemo(
@@ -79,6 +73,11 @@ export function StorySwipeNeighbors({
 		[0, -28, SWIPE_UP_DRAG_MAX_PX],
 		[0, 0, 1],
 	);
+
+	const interactive =
+		isVerticalSwipeUpActive ||
+		isViewersMode ||
+		isVerticalSwipeDownCloseActive;
 
 	if (stories.length <= 1) {
 		return null;
@@ -123,7 +122,7 @@ export function StorySwipeNeighbors({
 									return;
 								}
 								if (i === activeIndex) {
-									onCloseViewersMode();
+									closeViewersMode();
 								} else {
 									onChangeActiveIndex(i);
 								}

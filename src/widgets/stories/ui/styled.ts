@@ -436,6 +436,10 @@ export const ViewersPreviewAvatarWrap = styled.div`
 	margin-left: -10px;
 	position: relative;
 	background: #333;
+
+	img {
+		object-fit: cover;
+	}
 `;
 
 export const ViewersPreviewCount = styled.div`
