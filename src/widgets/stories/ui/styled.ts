@@ -94,6 +94,12 @@ export const Overlay = styled.div`
 	justify-content: center;
 	padding: 0;
 	background: transparent;
+	width: 100%;
+	min-height: 100svh;
+	min-height: 100dvh;
+	overflow: clip;
+	overscroll-behavior: none;
+	isolation: isolate;
 `;
 
 export const OverlayBackdrop = styled.div`
@@ -103,7 +109,7 @@ export const OverlayBackdrop = styled.div`
 	pointer-events: auto;
 `;
 
-export const StoryShell = styled(motion.div)`
+export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	position: relative;
 	z-index: 1;
 	height: 100%;
@@ -119,6 +125,12 @@ export const StoryShell = styled(motion.div)`
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
+
+	${({ $viewersChrome }) =>
+		$viewersChrome &&
+		css`
+			overscroll-behavior-y: contain;
+		`}
 `;
 
 export const VisuallyHidden = styled.span`
@@ -452,16 +464,6 @@ export const ViewersPreviewCount = styled.div`
 	gap: 6px;
 `;
 
-export const ViewersPanelWrap = styled.div`
-	position: absolute;
-	inset: 0;
-	z-index: 30;
-	background: transparent;
-	display: flex;
-	flex-direction: column;
-	pointer-events: none;
-`;
-
 /** Слой слайдера + панели зрителей: родитель с `pointer-events: none`, клики ловят дети с `auto`. */
 export const StoriesViewersModeRoot = styled(motion.div)`
 	position: absolute;
@@ -472,9 +474,12 @@ export const StoriesViewersModeRoot = styled(motion.div)`
 	z-index: 25;
 	pointer-events: none;
 	transform-origin: bottom center;
+	overscroll-behavior-y: contain;
 `;
 
-export const ViewersPanelContent = styled(motion.div)`
+export const ViewersPanelContent = styled(motion.div)<{
+	$lockVerticalTouch?: boolean;
+}>`
 	position: absolute;
 	bottom: 0;
 	width: 100%;
@@ -487,6 +492,13 @@ export const ViewersPanelContent = styled(motion.div)`
 	flex-direction: column;
 	pointer-events: auto;
 	padding-top: 16px;
+	overscroll-behavior-y: contain;
+
+	${({ $lockVerticalTouch }) =>
+		$lockVerticalTouch &&
+		css`
+			touch-action: none;
+		`}
 `;
 
 export const ViewersPanelHeader = styled.div`
@@ -506,11 +518,20 @@ export const ViewersPanelTitle = styled.h3`
 	width: 100%;
 `;
 
-export const ViewersPanelList = styled.div`
+export const ViewersPanelList = styled.div<{
+	$lockVerticalTouch?: boolean;
+}>`
 	flex: 1;
 	overflow-y: auto;
 	padding: 8px 0;
 	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-y: contain;
+
+	${({ $lockVerticalTouch }) =>
+		$lockVerticalTouch &&
+		css`
+			touch-action: none;
+		`}
 `;
 
 export const ViewersPanelEmptyState = styled.div`

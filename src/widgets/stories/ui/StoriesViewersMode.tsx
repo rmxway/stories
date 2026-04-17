@@ -7,13 +7,7 @@ import {
 import { StoriesViewersModeRoot } from './styled';
 import { ViewersListPanel } from './ViewersListPanel';
 
-type StoriesViewersModeProps = {
-	onScrollStateChange?: (isScrolling: boolean) => void;
-};
-
-export function StoriesViewersMode({
-	onScrollStateChange,
-}: StoriesViewersModeProps) {
+export function StoriesViewersMode() {
 	const { stories, activeIndex } = useStoriesViewerDomain();
 	const {
 		panelY,
@@ -21,6 +15,7 @@ export function StoriesViewersMode({
 		isViewersMode,
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
+		viewersStage,
 		closeViewersMode,
 	} = useStoriesViewerInteraction();
 
@@ -37,8 +32,10 @@ export function StoriesViewersMode({
 				panelY={panelY}
 				panelHeightPx={panelHeightPx}
 				interactive={chromeInteractive}
+				lockVerticalTouch={
+					viewersStage === 'thumbnails' || viewersStage === 'expanded'
+				}
 				onClose={closeViewersMode}
-				onScrollStateChange={onScrollStateChange}
 			/>
 		</StoriesViewersModeRoot>
 	);

@@ -9,12 +9,13 @@ export function MainPage() {
 		<Root>
 			<h1>Stories</h1>
 			<Lead>
-				Приложение которое реализует идею сторисов в телеграмме,
-				основанное по принципу Feature-Sliced Design:
-				<br />
-				<code>app</code>, <code>screens</code>, далее —{' '}
-				<code>widgets</code>, <code>features</code>,{' '}
-				<code>entities</code>, <code>shared</code>.
+				Демо в духе Telegram Stories: превью-кольца, полноэкранный
+				просмотр, жесты и анимации на Framer Motion, прогресс по
+				сегментам и сохранение «просмотренных» в{' '}
+				<code>localStorage</code>. Структура кода близка к
+				Feature-Sliced Design: <code>app</code>, <code>screens</code>,{' '}
+				<code>widgets/stories</code>, <code>shared</code>,{' '}
+				<code>theme</code>.
 			</Lead>
 			<StoriesWidget />
 		</Root>

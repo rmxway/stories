@@ -26,8 +26,12 @@ type ViewersListPanelProps = {
 	panelHeightPx: MotionValue<number>;
 	/** Управление hit-area: false когда слой зрителей визуально выключен (остаётся смонтированным). */
 	interactive: boolean;
+	/**
+	 * Отключаем нативный вертикальный тач на панели (thumbnails / expanded),
+	 * чтобы жесты shell (вверх/вниз по режиму зрителей) не перехватывал скролл списка.
+	 */
+	lockVerticalTouch: boolean;
 	onClose: () => void;
-	onScrollStateChange?: (isScrolling: boolean) => void;
 };
 
 export function ViewersListPanel({
@@ -35,14 +39,15 @@ export function ViewersListPanel({
 	panelY,
 	panelHeightPx,
 	interactive,
+	lockVerticalTouch,
 	onClose,
-	onScrollStateChange,
 }: ViewersListPanelProps) {
 	const hasViewers = Boolean(viewers?.length);
 	const count = viewers.length;
 
 	return (
 		<ViewersPanelContent
+			$lockVerticalTouch={lockVerticalTouch}
 			data-viewers-interactive={interactive ? 'true' : undefined}
 			style={{
 				y: panelY,
@@ -50,18 +55,14 @@ export function ViewersListPanel({
 				pointerEvents: interactive ? 'auto' : 'none',
 				opacity: interactive ? 1 : 0,
 			}}
-			// When user starts touching the list, we might want to stop the drag to close viewers
 			onPointerDown={(e) => {
 				e.stopPropagation();
-				if (onScrollStateChange) onScrollStateChange(true);
 			}}
 			onPointerUp={(e) => {
 				e.stopPropagation();
-				if (onScrollStateChange) onScrollStateChange(false);
 			}}
 			onPointerCancel={(e) => {
 				e.stopPropagation();
-				if (onScrollStateChange) onScrollStateChange(false);
 			}}
 		>
 			<ViewersPanelHeader>
@@ -76,7 +77,7 @@ export function ViewersListPanel({
 					<Icon icon="times-small" size={5} />
 				</CloseButton>
 			</ViewersPanelHeader>
-			<ViewersPanelList>
+			<ViewersPanelList $lockVerticalTouch={lockVerticalTouch}>
 				{hasViewers ? (
 					viewers.map((viewer) => {
 						const src = viewer.img || STORY_AVATAR_SRC;

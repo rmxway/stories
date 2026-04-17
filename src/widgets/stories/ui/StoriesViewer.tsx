@@ -22,10 +22,7 @@ import {
 	STORY_AVATAR_SRC,
 	type StoryItem,
 } from '../constants';
-import {
-	useProgressiveAvatarPhase,
-	useStorySlidePhase,
-} from '../lib/media';
+import { useProgressiveAvatarPhase, useStorySlidePhase } from '../lib/media';
 import { StoriesProgress } from './StoriesProgress';
 import {
 	StoriesViewerProvider,
@@ -233,6 +230,7 @@ function StoriesViewerInner() {
 				style={{ opacity: dimmerOpacity }}
 			/>
 			<StoryShell
+				$viewersChrome={isViewersMode}
 				layoutId={STORIES_SHELL_LAYOUT_ID}
 				style={{ y: dismissDragY, scale: shellScale }}
 				{...pointerProps}
