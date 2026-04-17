@@ -3,12 +3,14 @@
 import { useTransform } from 'framer-motion';
 import { useCallback, useMemo } from 'react';
 
-import { useStoriesThumbnailsSlider } from '../lib/useStoriesThumbnailsSlider';
+import {
+	useStoriesThumbnailsSlider,
+	useViewersThumbnailStripInteraction,
+} from '../lib/gestures';
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,
-} from '../lib/useStoryViewerInteractions';
-import { useViewersThumbnailStripInteraction } from '../lib/useViewersThumbnailStripInteraction';
+} from '../lib/motion';
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,

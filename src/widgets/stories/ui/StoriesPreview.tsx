@@ -10,7 +10,7 @@ import {
 	STORY_AVATAR_SRC,
 	type StoryItem,
 } from '../constants';
-import { useProgressiveAvatarPhase } from '../lib/useStoryImagePreload';
+import { useProgressiveAvatarPhase } from '../lib/media';
 import { StoryRingSvg } from './StoryRingSvg';
 import {
 	PreviewButton,

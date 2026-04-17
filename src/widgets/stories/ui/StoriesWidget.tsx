@@ -9,13 +9,13 @@ import {
 	useState,
 } from 'react';
 
-import { STORIES } from '../constants';
 import { isEditableTarget } from '../lib/isEditableTarget';
-import { loadSeenIds, saveSeenIds } from '../lib/storiesStorage';
 import {
 	getInitialOpenIndex,
 	resolveStoriesProgressComplete,
-} from '../lib/storiesWidgetNavigation';
+} from '../lib/navigation';
+import { loadSeenIds, saveSeenIds } from '../lib/storage';
+import { STORIES } from '../stories.data';
 import { StoriesPreview } from './StoriesPreview';
 import { StoriesViewer } from './StoriesViewer';
 

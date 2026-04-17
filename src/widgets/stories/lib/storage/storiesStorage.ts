@@ -1,4 +1,4 @@
-import { STORIES_STORAGE_KEY } from '../constants';
+import { STORIES_STORAGE_KEY } from '../../constants';
 
 export function loadSeenIds(): string[] {
 	if (typeof window === 'undefined') {

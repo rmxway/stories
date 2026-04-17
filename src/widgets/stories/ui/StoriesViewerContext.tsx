@@ -3,7 +3,7 @@
 import { createContext, type PropsWithChildren, useContext } from 'react';
 
 import { type StoryItem } from '../constants';
-import { useStoryViewerInteractions } from '../lib/useStoryViewerInteractions';
+import { useStoryViewerInteractions } from '../lib/gestures';
 
 /** Навигация, данные сторис и коллбеки из `StoriesWidget` — не зависят от жестов/анимаций. */
 export type StoriesViewerDomainValue = {

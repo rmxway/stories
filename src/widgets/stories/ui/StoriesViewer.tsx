@@ -25,7 +25,7 @@ import {
 import {
 	useProgressiveAvatarPhase,
 	useStorySlidePhase,
-} from '../lib/useStoryImagePreload';
+} from '../lib/media';
 import { StoriesProgress } from './StoriesProgress';
 import {
 	StoriesViewerProvider,

@@ -4,20 +4,19 @@ import type { PanInfo } from 'framer-motion';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { ViewersStage } from '../constants';
-import { GESTURE_AXIS_LOCK_PX } from './useStoryViewerInteractions';
+import type { ViewersStage } from '../../constants';
+import {
+	GESTURE_AXIS_LOCK_PX,
+	STRIP_AXIS_LOCK_MIN_PX,
+	STRIP_HORIZONTAL_DOMINANCE,
+	STRIP_SWIPE_DOWN_CLOSE_MIN_PX,
+	STRIP_VERTICAL_OVER_HORIZONTAL,
+} from './storyViewerGestureConstants';
 
 type DragGestureHandler = (
 	event: MouseEvent | TouchEvent | PointerEvent,
 	info: PanInfo,
 ) => void;
-
-/** Как в useStoryViewerInteractions при фиксации вертикали. */
-const VERTICAL_OVER_HORIZONTAL = 0.92;
-const HORIZONTAL_DOMINANCE = 1.08;
-const AXIS_LOCK_MIN_PX = 12;
-/** Свайп вниз по полосе миниатюр для выхода из режима зрителей (px). */
-const STRIP_SWIPE_DOWN_CLOSE_MIN_PX = 48;
 
 type UseViewersThumbnailStripInteractionArgs = {
 	viewersStage: ViewersStage;
@@ -110,18 +109,18 @@ export function useViewersThumbnailStripInteraction({
 			const dx = e.clientX - s.x0;
 			const dy = e.clientY - s.y0;
 			if (
-				Math.abs(dx) < AXIS_LOCK_MIN_PX &&
-				Math.abs(dy) < AXIS_LOCK_MIN_PX
+				Math.abs(dx) < STRIP_AXIS_LOCK_MIN_PX &&
+				Math.abs(dy) < STRIP_AXIS_LOCK_MIN_PX
 			) {
 				return;
 			}
-			if (Math.abs(dx) >= Math.abs(dy) * HORIZONTAL_DOMINANCE) {
+			if (Math.abs(dx) >= Math.abs(dy) * STRIP_HORIZONTAL_DOMINANCE) {
 				s.decided = 'horizontal';
 				return;
 			}
 			if (
 				dy > GESTURE_AXIS_LOCK_PX &&
-				Math.abs(dy) > Math.abs(dx) * VERTICAL_OVER_HORIZONTAL
+				Math.abs(dy) > Math.abs(dx) * STRIP_VERTICAL_OVER_HORIZONTAL
 			) {
 				s.decided = 'vertical';
 				return;

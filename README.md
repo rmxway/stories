@@ -25,11 +25,31 @@
 
 Перед сборкой `prebuild` генерирует `src/generated/blur-map.json` — карту размытых data URL для `placeholder="blur"` у картинок историй (скрипт `scripts/generate-blur-data-urls.mjs`, **sharp**). После добавления новых файлов в `public/img/…` имеет смысл снова выполнить `yarn build` или запустить генератор вручную.
 
-## 🎨 Настройка контента историй
+## 🎨 Настройка контента и констант
 
-Список слайдов, длительность и данные зрителей задаются в `src/widgets/stories/constants.ts` (`STORIES`, `STORY_DURATION_SEC` и связанные константы). Изображения кладите в `public` (например `public/img/stories/…`) и укажите пути в константах.
+- **Список слайдов и зрителей** задаётся в [`src/widgets/stories/stories.data.ts`](src/widgets/stories/stories.data.ts) (массив `STORIES`, тип `StoryItem`).
+- **Общие константы виджета** (ключ `localStorage`, `layoutId` для Framer Motion, длительность сегмента, `STORY_AVATAR_SRC`, типы вроде `ViewersStage`) — в [`src/widgets/stories/constants.ts`](src/widgets/stories/constants.ts).
+- **Пороги жестов и анимации режима зрителей** (spring, диапазон `swipeUpDragY`, коэффициенты) — в [`src/widgets/stories/lib/motion/storyViewerMotionConstants.ts`](src/widgets/stories/lib/motion/storyViewerMotionConstants.ts) и в [`src/widgets/stories/lib/gestures/storyViewerGestureConstants.ts`](src/widgets/stories/lib/gestures/storyViewerGestureConstants.ts).
 
-Просмотренные id хранятся под ключом `STORIES_STORAGE_KEY` в `localStorage` (см. `src/widgets/stories/lib/storiesStorage.ts`).
+Изображения кладите в `public` (например `public/img/stories/…`) и укажите пути в данных.
+
+Просмотренные id хранятся под ключом `STORIES_STORAGE_KEY` в `localStorage`; чтение и запись — в [`src/widgets/stories/lib/storage/storiesStorage.ts`](src/widgets/stories/lib/storage/storiesStorage.ts).
+
+## 📚 Модуль `src/widgets/stories/lib`
+
+Логика разнесена по папкам; из UI удобно импортировать через **barrel** (`index.ts` в каждой папке):
+
+| Папка        | Назначение |
+| ------------ | ---------- |
+| `navigation/` | Выбор начального индекса, разрешение прогресса по списку (`getInitialOpenIndex`, `resolveStoriesProgressComplete`). |
+| `storage/`    | `loadSeenIds` / `saveSeenIds`. |
+| `media/`      | Preload и фазы загрузки кадра/аватара (`useStorySlidePhase`, `useProgressiveAvatarPhase`). |
+| `gestures/`   | Жесты оболочки и рельса миниатюр, константы DOM, `useStoryViewerInteractions` и связанные хуки. |
+| `motion/`     | Константы motion для viewers, snap после жеста (`useStoryViewerSnapMotion`). |
+
+Пример: `import { useStoryViewerInteractions } from '@/widgets/stories/lib/gestures'` или относительный путь `../lib/gestures` из файлов в `ui/`.
+
+Дополнительно в корне `lib/` лежат небольшие утилиты без отдельной папки: `formatStoryViewCount.ts`, `isEditableTarget.ts`.
 
 ## 📁 Структура проекта
 
@@ -48,7 +68,9 @@
     │       └── ui/              # главная страница и её стили
     ├── widgets/
     │   └── stories/             # виджет «истории»
-    │       ├── lib/             # storage, навигация, жесты, preload, форматирование
+    │       ├── lib/             # navigation, storage, media, gestures, motion, утилиты
+    │       ├── stories.data.ts  # демо-данные STORIES
+    │       ├── constants.ts     # доменные константы виджета
     │       └── ui/              # превью, просмотр, прогресс, зрители, styled
     ├── shared/
     │   └── ui/                  # Icon/, layouts/ (container, flexbox, space)
