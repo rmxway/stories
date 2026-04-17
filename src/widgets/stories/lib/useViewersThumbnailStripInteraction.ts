@@ -4,6 +4,7 @@ import type { PanInfo } from 'framer-motion';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
+import type { ViewersStage } from '../constants';
 import { GESTURE_AXIS_LOCK_PX } from './useStoryViewerInteractions';
 
 type DragGestureHandler = (
@@ -19,8 +20,9 @@ const AXIS_LOCK_MIN_PX = 12;
 const STRIP_SWIPE_DOWN_CLOSE_MIN_PX = 48;
 
 type UseViewersThumbnailStripInteractionArgs = {
-	isViewersMode: boolean;
-	onCloseViewersMode: () => void;
+	viewersStage: ViewersStage;
+	onCloseToStory: () => void;
+	onCollapseToThumbnails: () => void;
 };
 
 type StripPointerState = {
@@ -33,16 +35,19 @@ type StripPointerState = {
 /**
  * Жесты по рельсу миниатюр в режиме зрителей:
  * — горизонтальный drag Framer не считается закрытием;
- * — явный свайп вниз вызывает onCloseViewersMode;
+ * — явный свайп вниз: из expanded → миниатюры, из миниатюр → полный выход;
  * — allowThumbClickRef блокирует «клик» после горизонтального drag.
  */
 export function useViewersThumbnailStripInteraction({
-	isViewersMode,
-	onCloseViewersMode,
+	viewersStage,
+	onCloseToStory,
+	onCollapseToThumbnails,
 }: UseViewersThumbnailStripInteractionArgs) {
 	const stripPtrRef = useRef<StripPointerState | null>(null);
 	const allowThumbClickRef = useRef(true);
 	const allowThumbClickTimeoutRef = useRef<number | null>(null);
+	const viewersStageRef = useRef(viewersStage);
+	viewersStageRef.current = viewersStage;
 
 	const clearAllowThumbClickTimeout = useCallback(() => {
 		if (allowThumbClickTimeoutRef.current !== null) {
@@ -77,7 +82,7 @@ export function useViewersThumbnailStripInteraction({
 
 	const onPointerDownCapture = useCallback(
 		(e: ReactPointerEvent<HTMLDivElement>) => {
-			if (!isViewersMode || e.button !== 0) {
+			if (viewersStageRef.current === 'story' || e.button !== 0) {
 				stripPtrRef.current = null;
 				return;
 			}
@@ -88,14 +93,14 @@ export function useViewersThumbnailStripInteraction({
 				decided: 'pending',
 			};
 		},
-		[isViewersMode],
+		[],
 	);
 
 	const onPointerMove = useCallback(
 		(e: ReactPointerEvent<HTMLDivElement>) => {
 			const s = stripPtrRef.current;
 			if (
-				!isViewersMode ||
+				viewersStageRef.current === 'story' ||
 				!s ||
 				s.pointerId !== e.pointerId ||
 				s.decided !== 'pending'
@@ -123,7 +128,7 @@ export function useViewersThumbnailStripInteraction({
 			}
 			s.decided = 'horizontal';
 		},
-		[isViewersMode],
+		[],
 	);
 
 	const finishStripPointer = useCallback(
@@ -133,7 +138,10 @@ export function useViewersThumbnailStripInteraction({
 				return;
 			}
 			stripPtrRef.current = null;
-			if (!isViewersMode || s.decided !== 'vertical') {
+			if (
+				viewersStageRef.current === 'story' ||
+				s.decided !== 'vertical'
+			) {
 				return;
 			}
 			const dy = e.clientY - s.y0;
@@ -141,10 +149,14 @@ export function useViewersThumbnailStripInteraction({
 				return;
 			}
 			allowThumbClickRef.current = false;
-			onCloseViewersMode();
+			if (viewersStageRef.current === 'expanded') {
+				onCollapseToThumbnails();
+			} else {
+				onCloseToStory();
+			}
 			scheduleAllowThumbClick(120);
 		},
-		[isViewersMode, onCloseViewersMode, scheduleAllowThumbClick],
+		[onCloseToStory, onCollapseToThumbnails, scheduleAllowThumbClick],
 	);
 
 	const onPointerUpCapture = useCallback(
@@ -170,13 +182,16 @@ export function useViewersThumbnailStripInteraction({
 		[markHorizontalFromFramerDrag],
 	);
 
-	const wrapDragEnd = useCallback((orig?: DragGestureHandler) => {
-		const wrapped: DragGestureHandler = (e, info) => {
-			orig?.(e, info);
-			scheduleAllowThumbClick(70);
-		};
-		return wrapped;
-	}, [scheduleAllowThumbClick]);
+	const wrapDragEnd = useCallback(
+		(orig?: DragGestureHandler) => {
+			const wrapped: DragGestureHandler = (e, info) => {
+				orig?.(e, info);
+				scheduleAllowThumbClick(70);
+			};
+			return wrapped;
+		},
+		[scheduleAllowThumbClick],
+	);
 
 	return {
 		allowThumbClickRef,

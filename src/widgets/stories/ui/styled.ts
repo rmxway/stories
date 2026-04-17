@@ -115,7 +115,7 @@ export const StoryShell = styled(motion.div)`
 	flex-direction: column;
 	padding: 10px 0 clamp(35px, 5.5cqi, 50px);
 	container-type: inline-size;
-	
+
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
@@ -478,7 +478,8 @@ export const ViewersPanelContent = styled(motion.div)`
 	position: absolute;
 	bottom: 0;
 	width: 100%;
-	height: 50dvh;
+	min-height: 0;
+	box-sizing: border-box;
 	background: #1c1c1e;
 	border-top-left-radius: 16px;
 	border-top-right-radius: 16px;
@@ -580,21 +581,20 @@ export const StoriesSliderWrap = styled(motion.div)`
 	pointer-events: auto;
 `;
 
-export const StorySwipeSliderContent = styled.div`
+export const StorySwipeSliderContent = styled(motion.div)`
 	position: absolute;
 	top: 0;
 	left: 50%;
-	transform: translateX(-50%);
 	min-height: 0;
 	height: ${STORY_CARD_HEIGHT_AT_HALF_VIEWPORT};
 	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
-	z-index: 0;	
+	z-index: 1;
 `;
 
 export const StorySwipeSliderWrap = styled(motion.div)`
 	height: 100%;
 	box-sizing: border-box;
-	width: 100%;	
+	width: 100%;
 `;
 
 /** Горизонтальный трек: центрирование активной миниатюры; размеры согласованы с `StoryThumbnailItemWrap`. */
@@ -603,7 +603,7 @@ export const StoriesSliderTrack = styled.div`
 	display: flex;
 	gap: 20px;
 	height: 100%;
-	width: max-content;	
+	width: max-content;
 `;
 
 export const StoryThumbnailItemWrap = styled(motion.div)`
@@ -614,7 +614,7 @@ export const StoryThumbnailItemWrap = styled(motion.div)`
 	max-height: 50dvh;
 	max-width: 100%;
 	// min-width: ${STORY_CARD_MIN_WIDTH};
-	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};	
+	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
 	border-radius: 4px;
 	overflow: hidden;
 	cursor: pointer;

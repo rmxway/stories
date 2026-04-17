@@ -23,6 +23,7 @@ import {
 type ViewersListPanelProps = {
 	viewers: ReadonlyArray<StoryViewRecord>;
 	panelY: MotionValue<number>;
+	panelHeightPx: MotionValue<number>;
 	/** Управление hit-area: false когда слой зрителей визуально выключен (остаётся смонтированным). */
 	interactive: boolean;
 	onClose: () => void;
@@ -32,6 +33,7 @@ type ViewersListPanelProps = {
 export function ViewersListPanel({
 	viewers,
 	panelY,
+	panelHeightPx,
 	interactive,
 	onClose,
 	onScrollStateChange,
@@ -44,6 +46,7 @@ export function ViewersListPanel({
 			data-viewers-interactive={interactive ? 'true' : undefined}
 			style={{
 				y: panelY,
+				height: panelHeightPx,
 				pointerEvents: interactive ? 'auto' : 'none',
 				opacity: interactive ? 1 : 0,
 			}}

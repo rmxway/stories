@@ -17,6 +17,7 @@ export function StoriesViewersMode({
 	const { stories, activeIndex } = useStoriesViewerDomain();
 	const {
 		panelY,
+		panelHeightPx,
 		isViewersMode,
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
@@ -34,6 +35,7 @@ export function StoriesViewersMode({
 			<ViewersListPanel
 				viewers={currentStory?.viewers || []}
 				panelY={panelY}
+				panelHeightPx={panelHeightPx}
 				interactive={chromeInteractive}
 				onClose={closeViewersMode}
 				onScrollStateChange={onScrollStateChange}

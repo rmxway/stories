@@ -4,7 +4,10 @@ import { useTransform } from 'framer-motion';
 import { useCallback, useMemo } from 'react';
 
 import { useStoriesThumbnailsSlider } from '../lib/useStoriesThumbnailsSlider';
-import { SWIPE_UP_DRAG_MAX_PX } from '../lib/useStoryViewerInteractions';
+import {
+	SWIPE_UP_DRAG_MAX_PX,
+	SWIPE_UP_THUMBNAILS_PX,
+} from '../lib/useStoryViewerInteractions';
 import { useViewersThumbnailStripInteraction } from '../lib/useViewersThumbnailStripInteraction';
 import {
 	useStoriesViewerDomain,
@@ -17,15 +20,21 @@ import {
 	StorySwipeSliderWrap,
 } from './styled';
 
+/** До этой точки по Y рельс миниатюр остаётся скрыт при открытии из story (как раньше [0, -28, …]). */
+const SWIPE_THUMB_STRIP_EARLY_PX = -28;
+
 export function StorySwipeNeighbors() {
 	const { stories, activeIndex, onChangeActiveIndex } =
 		useStoriesViewerDomain();
 	const {
 		swipeUpDragY,
+		viewersStage,
 		isViewersMode,
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
 		closeViewersMode,
+		collapseViewersToThumbnails,
+		thumbnailRailY,
 	} = useStoriesViewerInteraction();
 
 	const {
@@ -48,8 +57,9 @@ export function StorySwipeNeighbors() {
 		wrapDragStart,
 		wrapDragEnd,
 	} = useViewersThumbnailStripInteraction({
-		isViewersMode,
-		onCloseViewersMode: closeViewersMode,
+		viewersStage,
+		onCloseToStory: closeViewersMode,
+		onCollapseToThumbnails: collapseViewersToThumbnails,
 	});
 
 	const dragStart = useMemo(
@@ -68,10 +78,16 @@ export function StorySwipeNeighbors() {
 		}, 70);
 	}, [allowThumbClickRef, onPointerCancel]);
 
+	/** 0 → story; миниатюры видны у `SWIPE_UP_THUMBNAILS_PX`; в expanded — скрыт. */
 	const swipeRevealOpacity = useTransform(
 		swipeUpDragY,
-		[0, -28, SWIPE_UP_DRAG_MAX_PX],
-		[0, 0, 1],
+		[
+			SWIPE_UP_DRAG_MAX_PX,
+			SWIPE_UP_THUMBNAILS_PX,
+			SWIPE_THUMB_STRIP_EARLY_PX,
+			0,
+		],
+		[0, 1, 0, 0],
 	);
 
 	const interactive =
@@ -84,7 +100,12 @@ export function StorySwipeNeighbors() {
 	}
 
 	return (
-		<StorySwipeSliderContent>
+		<StorySwipeSliderContent
+			style={{
+				x: '-50%',
+				y: thumbnailRailY,
+			}}
+		>
 			<StorySwipeSliderWrap
 				data-stories-thumbnail-strip="true"
 				data-viewers-interactive={interactive ? 'true' : undefined}

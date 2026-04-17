@@ -15,19 +15,30 @@ import {
 	useState,
 } from 'react';
 
-import { VIEWERS_CHROME_OPEN_SPRING } from '../constants';
+import {
+	SWIPE_UP_DRAG_MAX_PX,
+	SWIPE_UP_THUMBNAILS_PX,
+	VIEWERS_CHROME_OPEN_SPRING,
+	VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
+	type ViewersStage,
+} from '../constants';
+
+/** Реэкспорт для существующих импортов из хука. */
+export {
+	SWIPE_UP_DRAG_MAX_PX,
+	SWIPE_UP_THUMBNAILS_PX,
+	type ViewersStage,
+} from '../constants';
 
 /** Вертикальное смещение при свайпе вниз для закрытия (≥ 0). */
 export const DISMISS_DRAG_MAX_PX = 320;
 export const DISMISS_CLOSE_DISTANCE_PX = 110;
 export const DISMISS_CLOSE_VELOCITY_PX_S = 420;
-
-export const SWIPE_UP_DRAG_MAX_PX = -500;
 export const VIEWERS_CHROME_SCALE_MIN = 0.8;
 export const VIEWERS_CHROME_SCALE_MAX = 1;
 export const SWIPE_UP_OPEN_DISTANCE_PX = -150;
 export const SWIPE_UP_OPEN_VELOCITY_PX_S = -320;
-const SWIPE_UP_REVEAL_FADE_END_RANGE_PX = 30;
+const SWIPE_UP_REVEAL_FADE_END_RANGE_PX = 1;
 
 /** Порог начала жеста; вертикаль вверх/вниз используют одинаковое доминирование над горизонталью. */
 export const GESTURE_AXIS_LOCK_PX = 10;
@@ -35,7 +46,7 @@ const VERTICAL_DOMINANCE_OVER_HORIZONTAL = 0.92;
 /** Свайп вниз с трека миниатюр даёт больше dx — не отменяем жест, если уже явно тянем вниз. */
 const HORIZONTAL_CANCEL_MIN_PX = 18;
 export const SHELL_MIN_SCALE = 0.92;
-export const OVERLAY_BASE_OPACITY = 0.92;
+export const OVERLAY_BASE_OPACITY = 1;
 export const OVERLAY_DIMMEST_OPACITY = 0.34;
 
 const HOLD_SUPPRESS_CLICK_MS = 200;
@@ -47,7 +58,32 @@ type GestureMode =
 	| 'pending'
 	| 'verticalDismiss'
 	| 'verticalSwipeUp'
+	| 'verticalSwipeUpExpand'
 	| 'verticalSwipeDownCloseViewers';
+
+/** Между story и thumbnails (середина 0 … SWIPE_UP_THUMBNAILS_PX). */
+const MID_SNAP_STORY_THUMB_PX = SWIPE_UP_THUMBNAILS_PX / 2;
+/** Между thumbnails и expanded. */
+const MID_SNAP_THUMB_EXPAND_PX =
+	(SWIPE_UP_THUMBNAILS_PX + SWIPE_UP_DRAG_MAX_PX) / 2;
+/** Порог раннего автодотягивания в expanded при свайпе вверх из thumbnails. */
+const EXPAND_COMMIT_SWIPE_UP_PX =
+	SWIPE_UP_THUMBNAILS_PX +
+	(SWIPE_UP_DRAG_MAX_PX - SWIPE_UP_THUMBNAILS_PX) * 0.1;
+
+function expandProgressFromSwipeY(v: number): number {
+	if (v > SWIPE_UP_THUMBNAILS_PX) {
+		return 0;
+	}
+	return Math.min(
+		1,
+		Math.max(
+			0,
+			(v - SWIPE_UP_THUMBNAILS_PX) /
+				(SWIPE_UP_DRAG_MAX_PX - SWIPE_UP_THUMBNAILS_PX),
+		),
+	);
+}
 
 const getNow = (): number =>
 	typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -99,7 +135,10 @@ export function useStoryViewerInteractions({
 	/** Свайп вниз из режима зрителей: двигаем swipeUpDragY к 0 (закрытие). */
 	const [isVerticalSwipeDownCloseActive, setIsVerticalSwipeDownCloseActive] =
 		useState(false);
-	const [isViewersMode, setIsViewersMode] = useState(false);
+	const [viewersStage, setViewersStage] = useState<ViewersStage>('story');
+	const viewersStageRef = useRef<ViewersStage>('story');
+	viewersStageRef.current = viewersStage;
+	const isViewersMode = viewersStage !== 'story';
 
 	const suppressTapClickRef = useRef<boolean>(false);
 	const holdStartedAtRef = useRef(0);
@@ -119,8 +158,8 @@ export function useStoryViewerInteractions({
 		[OVERLAY_BASE_OPACITY, OVERLAY_DIMMEST_OPACITY],
 	);
 
-	/** 0 → полностью открытый режим зрителей (swipeUpDragY = SWIPE_UP_DRAG_MAX_PX). */
-	const SWIPE_UP_PREVIEW_FADE_RANGE_PX = -SWIPE_UP_DRAG_MAX_PX / 2;
+	/** 0 → режим миниатюр (swipeUpDragY = SWIPE_UP_THUMBNAILS_PX). */
+	const SWIPE_UP_PREVIEW_FADE_RANGE_PX = -SWIPE_UP_THUMBNAILS_PX;
 
 	const swipeUpOpenProgress = (v: number): number =>
 		Math.min(1, Math.max(0, -v / SWIPE_UP_PREVIEW_FADE_RANGE_PX));
@@ -134,12 +173,7 @@ export function useStoryViewerInteractions({
 		return 1 + (0.5 - 1) * t;
 	});
 
-	const storyY = useTransform(
-		swipeUpDragY,
-		(v) => -100 * swipeUpOpenProgress(v),
-	);
-
-	/** Смещение панели зрителей по Y: 50% высоты окна в закрытом состоянии; тот же `t`, что у `storyScale` / `storyY`. */
+	/** Смещение панели зрителей по Y (выезд снизу до миниатюр). */
 	const panelY = useTransform(swipeUpDragY, (v) => {
 		const t = swipeUpOpenProgress(v);
 		const offPx =
@@ -147,19 +181,39 @@ export function useStoryViewerInteractions({
 		return (1 - t) * offPx;
 	});
 
+	/** Высота панели: 50% viewport → 100% при expanded (без конфликта с translateY). */
+	const panelHeightPx = useTransform(swipeUpDragY, (v) => {
+		const ex = expandProgressFromSwipeY(v);
+		const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+		return h * (0.5 + 0.5 * ex);
+	});
+
+	/** Параллельный подъём рельса миниатюр при expanded. */
+	const thumbnailRailY = useTransform(swipeUpDragY, (v) => {
+		const ex = expandProgressFromSwipeY(v);
+		const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+		return -ex * h * VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO;
+	});
+
 	const previewOpacity = useTransform(swipeUpDragY, (v) =>
 		Math.min(1, Math.max(0, 1 + v / SWIPE_UP_PREVIEW_FADE_RANGE_PX)),
 	);
 
-	const previewRevealOpacity = useTransform(
-		swipeUpDragY,
-		[
-			SWIPE_UP_DRAG_MAX_PX,
-			SWIPE_UP_DRAG_MAX_PX + SWIPE_UP_REVEAL_FADE_END_RANGE_PX,
-			0,
-		],
-		[0, 1, 1],
-	);
+	/**
+	 * Кадр остаётся видимым (1) почти до конца жеста к миниатюрам; fade только в последних
+	 * `SWIPE_UP_REVEAL_FADE_END_RANGE_PX` до `SWIPE_UP_THUMBNAILS_PX`. На миниатюрах и в expanded — 0.
+	 */
+	const previewRevealOpacity = useTransform(swipeUpDragY, (v) => {
+		const thumb = SWIPE_UP_THUMBNAILS_PX;
+		const bandEnd = thumb + SWIPE_UP_REVEAL_FADE_END_RANGE_PX;
+		if (v > bandEnd) {
+			return 1;
+		}
+		if (v > thumb) {
+			return (v - thumb) / SWIPE_UP_REVEAL_FADE_END_RANGE_PX;
+		}
+		return 0;
+	});
 
 	/**
 	 * Та же кривая, что у `previewOpacity`, но из одного источника `swipeUpDragY`
@@ -197,15 +251,18 @@ export function useStoryViewerInteractions({
 	}, [activeIndex, dismissDragY, isViewersMode, swipeUpDragY]);
 
 	/**
-	 * В режиме зрителей при смене кадра — сразу «полное» положение жеста.
-	 * Не трогаем swipe при первом входе в режим (там дорабатывает animateSwipeTo).
+	 * В режиме зрителей при смене кадра — сохраняем стадию (миниатюры / expanded).
 	 */
 	useEffect(() => {
 		if (isViewersMode && prevActiveIndexRef.current !== activeIndex) {
-			swipeUpDragY.set(SWIPE_UP_DRAG_MAX_PX);
+			if (viewersStage === 'expanded') {
+				swipeUpDragY.set(SWIPE_UP_DRAG_MAX_PX);
+			} else {
+				swipeUpDragY.set(SWIPE_UP_THUMBNAILS_PX);
+			}
 		}
 		prevActiveIndexRef.current = activeIndex;
-	}, [activeIndex, isViewersMode, swipeUpDragY]);
+	}, [activeIndex, isViewersMode, swipeUpDragY, viewersStage]);
 
 	const modeRef = useRef<GestureMode>('idle');
 	const startYRef = useRef(0);
@@ -288,12 +345,35 @@ export function useStoryViewerInteractions({
 				velocityY < SWIPE_UP_OPEN_VELOCITY_PX_S;
 
 			if (shouldOpen) {
-				setIsViewersMode(true);
+				setViewersStage('thumbnails');
 				setIsVerticalSwipeUpActive(false);
-				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX);
+				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX);
 			} else {
 				void animateSwipeTo(0, () => {
-					setIsViewersMode(false);
+					setViewersStage('story');
+					setIsVerticalSwipeUpActive(false);
+				});
+			}
+		},
+		[animateSwipeTo, swipeUpDragY],
+	);
+
+	const finishSwipeUpExpandOrSnap = useCallback(
+		(velocityY: number) => {
+			const y = swipeUpDragY.get();
+			const shouldExpand =
+				y <= EXPAND_COMMIT_SWIPE_UP_PX ||
+				velocityY < SWIPE_UP_OPEN_VELOCITY_PX_S;
+
+			if (shouldExpand) {
+				setViewersStage('expanded');
+				setIsVerticalSwipeUpActive(false);
+				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX, () => {
+					setIsVerticalSwipeDownCloseActive(false);
+				});
+			} else {
+				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX, () => {
+					setViewersStage('thumbnails');
 					setIsVerticalSwipeUpActive(false);
 				});
 			}
@@ -304,39 +384,56 @@ export function useStoryViewerInteractions({
 	const finishSwipeDownCloseViewersOrSnap = useCallback(
 		(velocityY: number) => {
 			const y = swipeUpDragY.get();
-			const shouldClose =
-				y >= SWIPE_UP_DRAG_MAX_PX - SWIPE_UP_OPEN_DISTANCE_PX ||
-				velocityY > -SWIPE_UP_OPEN_VELOCITY_PX_S;
+			const strongDown = velocityY > -SWIPE_UP_OPEN_VELOCITY_PX_S;
 
-			if (shouldClose) {
+			if (
+				y > MID_SNAP_STORY_THUMB_PX ||
+				(strongDown && y > SWIPE_UP_THUMBNAILS_PX)
+			) {
 				void animateSwipeTo(0, () => {
-					setIsViewersMode(false);
+					setViewersStage('story');
 					setIsVerticalSwipeDownCloseActive(false);
 				});
-			} else {
-				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX, () => {
-					setIsViewersMode(true);
-					setIsVerticalSwipeDownCloseActive(false);
-				});
+				return;
 			}
+
+			if (y > MID_SNAP_THUMB_EXPAND_PX || strongDown) {
+				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX, () => {
+					setViewersStage('thumbnails');
+					setIsVerticalSwipeDownCloseActive(false);
+				});
+				return;
+			}
+
+			void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX, () => {
+				setViewersStage('expanded');
+				setIsVerticalSwipeDownCloseActive(false);
+			});
 		},
 		[animateSwipeTo, swipeUpDragY],
 	);
 
-	/** Публичный метод для закрытия режима зрителей (используется из StoriesThumbnailsSlider). */
+	/** Полный выход в обычный просмотр сторис (крестик, тап по активной миниатюре и т.д.). */
 	const closeViewersMode = useCallback(() => {
 		void animateSwipeTo(0, () => {
-			setIsViewersMode(false);
+			setViewersStage('story');
 			setIsVerticalSwipeUpActive(false);
 			setIsVerticalSwipeDownCloseActive(false);
 		});
 	}, [animateSwipeTo]);
 
+	/** Открыть режим миниатюр (превью зрителей). */
 	const openViewersMode = useCallback(() => {
-		setIsViewersMode(true);
+		setViewersStage('thumbnails');
 		setIsVerticalSwipeUpActive(false);
 		setIsVerticalSwipeDownCloseActive(false);
-		void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX);
+		void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX);
+	}, [animateSwipeTo]);
+
+	/** Из expanded → thumbnails (например свайп вниз по рельсу). */
+	const collapseViewersToThumbnails = useCallback(() => {
+		setViewersStage('thumbnails');
+		void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX);
 	}, [animateSwipeTo]);
 
 	const beginHold = useCallback(() => {
@@ -454,6 +551,11 @@ export function useStoryViewerInteractions({
 						setIsVerticalSwipeUpActive(true);
 						e.currentTarget.setPointerCapture(e.pointerId);
 						suppressTapClickRef.current = true;
+					} else if (viewersStageRef.current === 'thumbnails') {
+						modeRef.current = 'verticalSwipeUpExpand';
+						setIsVerticalSwipeUpActive(true);
+						e.currentTarget.setPointerCapture(e.pointerId);
+						suppressTapClickRef.current = true;
 					}
 				} else if (
 					Math.abs(dx) >= HORIZONTAL_CANCEL_MIN_PX &&
@@ -479,9 +581,14 @@ export function useStoryViewerInteractions({
 			if (modeRef.current === 'verticalDismiss') {
 				const pullDown = Math.max(0, dy);
 				dismissDragY.set(applyResistance(pullDown));
-			} else if (modeRef.current === 'verticalSwipeUp') {
+			} else if (
+				modeRef.current === 'verticalSwipeUp' ||
+				modeRef.current === 'verticalSwipeUpExpand'
+			) {
 				const pullUp = Math.min(0, dy);
-				swipeUpDragY.set(applyUpResistance(pullUp));
+				swipeUpDragY.set(
+					applyUpResistance(swipeUpStartValRef.current + pullUp),
+				);
 			} else if (modeRef.current === 'verticalSwipeDownCloseViewers') {
 				const pullDown = Math.max(0, dy);
 				swipeUpDragY.set(
@@ -492,6 +599,7 @@ export function useStoryViewerInteractions({
 			const committedVertical =
 				modeRef.current === 'verticalDismiss' ||
 				modeRef.current === 'verticalSwipeUp' ||
+				modeRef.current === 'verticalSwipeUpExpand' ||
 				modeRef.current === 'verticalSwipeDownCloseViewers';
 			if (committedVertical) {
 				e.stopPropagation();
@@ -520,6 +628,7 @@ export function useStoryViewerInteractions({
 			if (
 				m === 'verticalDismiss' ||
 				m === 'verticalSwipeUp' ||
+				m === 'verticalSwipeUpExpand' ||
 				m === 'verticalSwipeDownCloseViewers'
 			) {
 				try {
@@ -531,6 +640,8 @@ export function useStoryViewerInteractions({
 					finishDismissOrSnap(velocityYRef.current);
 				} else if (m === 'verticalSwipeUp') {
 					finishSwipeUpOrSnap(velocityYRef.current);
+				} else if (m === 'verticalSwipeUpExpand') {
+					finishSwipeUpExpandOrSnap(velocityYRef.current);
 				} else if (m === 'verticalSwipeDownCloseViewers') {
 					finishSwipeDownCloseViewersOrSnap(velocityYRef.current);
 				}
@@ -538,7 +649,7 @@ export function useStoryViewerInteractions({
 
 			modeRef.current = 'idle';
 			setIsVerticalDismissActive(false);
-			if (m !== 'verticalSwipeUp') {
+			if (m !== 'verticalSwipeUp' && m !== 'verticalSwipeUpExpand') {
 				setIsVerticalSwipeUpActive(false);
 			}
 			if (m !== 'verticalSwipeDownCloseViewers') {
@@ -550,6 +661,7 @@ export function useStoryViewerInteractions({
 			endHoldAfterRelease,
 			finishDismissOrSnap,
 			finishSwipeDownCloseViewersOrSnap,
+			finishSwipeUpExpandOrSnap,
 			finishSwipeUpOrSnap,
 		],
 	);
@@ -579,16 +691,34 @@ export function useStoryViewerInteractions({
 				} catch {
 					/* ignore */
 				}
-				void animateSwipeTo(0);
+				void animateSwipeTo(0, () => setViewersStage('story'));
+			} else if (cancelMode === 'verticalSwipeUpExpand') {
+				try {
+					e.currentTarget.releasePointerCapture(e.pointerId);
+				} catch {
+					/* ignore */
+				}
+				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX, () => {
+					setViewersStage('thumbnails');
+					setIsVerticalSwipeUpActive(false);
+				});
 			} else if (cancelMode === 'verticalSwipeDownCloseViewers') {
 				try {
 					e.currentTarget.releasePointerCapture(e.pointerId);
 				} catch {
 					/* ignore */
 				}
-				void animateSwipeTo(SWIPE_UP_DRAG_MAX_PX, () =>
-					setIsVerticalSwipeDownCloseActive(false),
-				);
+				const restoreY = swipeUpStartValRef.current;
+				void animateSwipeTo(restoreY, () => {
+					setIsVerticalSwipeDownCloseActive(false);
+					if (restoreY === 0) {
+						setViewersStage('story');
+					} else if (restoreY === SWIPE_UP_THUMBNAILS_PX) {
+						setViewersStage('thumbnails');
+					} else {
+						setViewersStage('expanded');
+					}
+				});
 			}
 
 			modeRef.current = 'idle';
@@ -632,13 +762,15 @@ export function useStoryViewerInteractions({
 		isVerticalDismissActive,
 
 		// New viewers mode
+		viewersStage,
 		isViewersMode,
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
 		swipeUpDragY,
 		storyScale,
-		storyY,
 		panelY,
+		panelHeightPx,
+		thumbnailRailY,
 		previewOpacity,
 		previewRevealOpacity,
 		viewersChromeOpacity,
@@ -646,6 +778,7 @@ export function useStoryViewerInteractions({
 		viewersChromeTransform,
 		closeViewersMode,
 		openViewersMode,
+		collapseViewersToThumbnails,
 
 		/**
 		 * Единый объект pointer events.
