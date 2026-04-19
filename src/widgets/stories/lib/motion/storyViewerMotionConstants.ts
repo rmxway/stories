@@ -8,8 +8,8 @@
  */
 export const VIEWERS_CHROME_OPEN_SPRING = {
 	type: 'tween' as const,
-	duration: 0.4,
-	ease: 'easeInOut' as const,
+	duration: 0.2,
+	ease: 'easeOut' as const,
 } as const;
 
 /** Верхняя граница жеста (полностью поднятый список + рельс). */

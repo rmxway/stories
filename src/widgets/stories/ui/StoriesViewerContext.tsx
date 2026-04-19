@@ -1,6 +1,12 @@
 'use client';
 
-import { createContext, type PropsWithChildren, useContext } from 'react';
+import {
+	createContext,
+	type PropsWithChildren,
+	useContext,
+	useLayoutEffect,
+	useState,
+} from 'react';
 
 import { type StoryItem } from '../constants';
 import { useStoryViewerInteractions } from '../lib/gestures';
@@ -27,6 +33,14 @@ const StoriesViewerDomainContext =
 const StoriesViewerInteractionContext =
 	createContext<StoriesViewerInteractionValue | null>(null);
 
+type StoriesActiveSlideMediaValue = {
+	activeSlideContentReady: boolean;
+	setActiveSlideContentReady: (value: boolean) => void;
+};
+
+const StoriesActiveSlideMediaContext =
+	createContext<StoriesActiveSlideMediaValue | null>(null);
+
 export function useStoriesViewerDomain(): StoriesViewerDomainValue {
 	const value = useContext(StoriesViewerDomainContext);
 	if (!value) {
@@ -47,6 +61,16 @@ export function useStoriesViewerInteraction(): StoriesViewerInteractionValue {
 	return value;
 }
 
+export function useStoriesActiveSlideMedia(): StoriesActiveSlideMediaValue {
+	const value = useContext(StoriesActiveSlideMediaContext);
+	if (!value) {
+		throw new Error(
+			'useStoriesActiveSlideMedia must be used within StoriesViewerProvider',
+		);
+	}
+	return value;
+}
+
 type StoriesViewerProviderProps = PropsWithChildren<StoriesViewerDomainValue>;
 
 export function StoriesViewerProvider({
@@ -60,10 +84,27 @@ export function StoriesViewerProvider({
 		onTapNext: domain.onTapNext,
 	});
 
+	const [activeSlideContentReady, setActiveSlideContentReady] =
+		useState(false);
+
+	/* Сброс до paint: иначе один кадр с устаревшим activeSlideContentReady ломает анимацию прогресса. */
+	useLayoutEffect(() => {
+		setActiveSlideContentReady(false);
+	}, [domain.activeIndex]);
+
+	const activeSlideMedia: StoriesActiveSlideMediaValue = {
+		activeSlideContentReady,
+		setActiveSlideContentReady,
+	};
+
 	return (
 		<StoriesViewerDomainContext.Provider value={domain}>
 			<StoriesViewerInteractionContext.Provider value={interaction}>
-				{children}
+				<StoriesActiveSlideMediaContext.Provider
+					value={activeSlideMedia}
+				>
+					{children}
+				</StoriesActiveSlideMediaContext.Provider>
 			</StoriesViewerInteractionContext.Provider>
 		</StoriesViewerDomainContext.Provider>
 	);

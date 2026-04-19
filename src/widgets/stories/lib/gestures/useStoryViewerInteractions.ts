@@ -19,22 +19,17 @@ import {
 import { useStoryViewerSnapMotion } from '../motion/useStoryViewerSnapMotion';
 import {
 	DISMISS_DRAG_MAX_PX,
-	expandProgressFromSwipeY,
 	GESTURE_AXIS_LOCK_PX,
 	HOLD_SUPPRESS_CLICK_MS,
 	HORIZONTAL_CANCEL_MIN_PX,
 	OVERLAY_BASE_OPACITY,
 	OVERLAY_DIMMEST_OPACITY,
 	SHELL_MIN_SCALE,
-	SWIPE_UP_REVEAL_FADE_END_RANGE_PX,
 	VERTICAL_DOMINANCE_OVER_HORIZONTAL,
 	VIEWERS_CHROME_SCALE_MAX,
 	VIEWERS_CHROME_SCALE_MIN,
 } from './storyViewerGestureConstants';
-import {
-	isInsideStoriesThumbnailStrip,
-	isInsideViewersInteractiveTarget,
-} from './storyViewerGestureDom';
+import { isInsideViewersInteractiveTarget } from './storyViewerGestureDom';
 import { runTapIfNotSuppressed } from './storyViewerTapGesture';
 
 /** Реэкспорт для существующих импортов из хука. */
@@ -99,6 +94,7 @@ export function useStoryViewerInteractions({
 	const dismissDragY = useMotionValue(0);
 	const swipeUpDragY = useMotionValue(0);
 	const reducedMotion = useReducedMotion() ?? false;
+	const isWindowDefined = typeof window !== 'undefined';
 
 	const {
 		applyResistance,
@@ -136,45 +132,51 @@ export function useStoryViewerInteractions({
 	const swipeUpOpenProgress = (v: number): number =>
 		Math.min(1, Math.max(0, -v / SWIPE_UP_PREVIEW_FADE_RANGE_PX));
 
-	const storyScale = useTransform(swipeUpDragY, (v) => {
-		const t = swipeUpOpenProgress(v);
-		return 1 + (0.5 - 1) * t;
-	});
-
-	const panelY = useTransform(swipeUpDragY, (v) => {
-		const t = swipeUpOpenProgress(v);
-		const offPx =
-			typeof window !== 'undefined' ? window.innerHeight * 0.5 : 0;
-		return (1 - t) * offPx;
-	});
-
-	const panelHeightPx = useTransform(swipeUpDragY, (v) => {
-		const ex = expandProgressFromSwipeY(v);
-		const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-		return h * (0.5 + 0.5 * ex);
-	});
-
-	const thumbnailRailY = useTransform(swipeUpDragY, (v) => {
-		const ex = expandProgressFromSwipeY(v);
-		const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-		return -ex * h * VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO;
-	});
-
-	const previewOpacity = useTransform(swipeUpDragY, (v) =>
-		Math.min(1, Math.max(0, 1 + v / SWIPE_UP_PREVIEW_FADE_RANGE_PX)),
+	const storyScale = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX],
+		[1, 0.5],
 	);
 
-	const previewRevealOpacity = useTransform(swipeUpDragY, (v) => {
-		const thumb = SWIPE_UP_THUMBNAILS_PX;
-		const bandEnd = thumb + SWIPE_UP_REVEAL_FADE_END_RANGE_PX;
-		if (v > bandEnd) {
-			return 1;
-		}
-		if (v > thumb) {
-			return (v - thumb) / SWIPE_UP_REVEAL_FADE_END_RANGE_PX;
-		}
-		return 0;
-	});
+	const panelY = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX],
+		[0, -(isWindowDefined ? window.innerHeight * 0.5 : 0)],
+	);
+
+	const panelHeightPx = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+		[
+			isWindowDefined ? window.innerHeight * 0.5 : 800,
+			isWindowDefined ? window.innerHeight * 0.5 : 800,
+			isWindowDefined ? window.innerHeight : 1400,
+		],
+	);
+
+	const thumbnailRailY = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+		[
+			0,
+			VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
+			isWindowDefined
+				? -window.innerHeight * 0.5
+				: -800 * VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
+		],
+	);
+
+	const previewOpacity = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+		[1, 0, 0],
+	);
+
+	const previewRevealOpacity = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX + 2, SWIPE_UP_THUMBNAILS_PX],
+		[1, 1, 0],
+	);
 
 	const viewersChromeOpacity = useTransform(swipeUpDragY, (v) =>
 		swipeUpOpenProgress(v),
@@ -225,10 +227,12 @@ export function useStoryViewerInteractions({
 	const swipeUpStartValRef = useRef(0);
 
 	const closeViewersMode = useCallback(() => {
+		/* Stage «story» до анимации: иначе до onComplete действует classic opacity и соседи
+		 * резко пропадают в последний кадр. */
+		setViewersStage('story');
+		setIsVerticalSwipeDownCloseActive(false);
 		void animateSwipeTo(0, () => {
-			setViewersStage('story');
 			setIsVerticalSwipeUpActive(false);
-			setIsVerticalSwipeDownCloseActive(false);
 		});
 	}, [animateSwipeTo]);
 
@@ -287,9 +291,6 @@ export function useStoryViewerInteractions({
 				return false;
 			}
 			const t = e.target;
-			if (isInsideStoriesThumbnailStrip(t) && !isViewersMode) {
-				return false;
-			}
 			if (isInsideViewersInteractiveTarget(t) && !isViewersMode) {
 				return false;
 			}
@@ -496,7 +497,8 @@ export function useStoryViewerInteractions({
 				} catch {
 					/* ignore */
 				}
-				void animateSwipeTo(0, () => setViewersStage('story'));
+				setViewersStage('story');
+				void animateSwipeTo(0);
 			} else if (cancelMode === 'verticalSwipeUpExpand') {
 				try {
 					e.currentTarget.releasePointerCapture(e.pointerId);
@@ -514,15 +516,15 @@ export function useStoryViewerInteractions({
 					/* ignore */
 				}
 				const restoreY = swipeUpStartValRef.current;
+				if (restoreY === 0) {
+					setViewersStage('story');
+				} else if (restoreY === SWIPE_UP_THUMBNAILS_PX) {
+					setViewersStage('thumbnails');
+				} else {
+					setViewersStage('expanded');
+				}
 				void animateSwipeTo(restoreY, () => {
 					setIsVerticalSwipeDownCloseActive(false);
-					if (restoreY === 0) {
-						setViewersStage('story');
-					} else if (restoreY === SWIPE_UP_THUMBNAILS_PX) {
-						setViewersStage('thumbnails');
-					} else {
-						setViewersStage('expanded');
-					}
 				});
 			}
 

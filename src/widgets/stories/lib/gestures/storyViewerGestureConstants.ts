@@ -11,7 +11,6 @@ export const VIEWERS_CHROME_SCALE_MIN = 0.8;
 export const VIEWERS_CHROME_SCALE_MAX = 1;
 export const SWIPE_UP_OPEN_DISTANCE_PX = -150;
 export const SWIPE_UP_OPEN_VELOCITY_PX_S = -320;
-export const SWIPE_UP_REVEAL_FADE_END_RANGE_PX = 1;
 
 /** Порог начала жеста; вертикаль вверх/вниз используют одинаковое доминирование над горизонталью. */
 export const GESTURE_AXIS_LOCK_PX = 10;
@@ -41,16 +40,3 @@ export const EXPAND_COMMIT_SWIPE_UP_PX =
 	SWIPE_UP_THUMBNAILS_PX +
 	(SWIPE_UP_DRAG_MAX_PX - SWIPE_UP_THUMBNAILS_PX) * 0.1;
 
-export function expandProgressFromSwipeY(v: number): number {
-	if (v > SWIPE_UP_THUMBNAILS_PX) {
-		return 0;
-	}
-	return Math.min(
-		1,
-		Math.max(
-			0,
-			(v - SWIPE_UP_THUMBNAILS_PX) /
-				(SWIPE_UP_DRAG_MAX_PX - SWIPE_UP_THUMBNAILS_PX),
-		),
-	);
-}

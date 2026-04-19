@@ -29,10 +29,10 @@ export function StoryViewersPreview() {
 
 	return (
 		<ViewersPreviewWrap
+			data-viewers-preview="true"
 			data-viewers-interactive="true"
 			role="button"
 			tabIndex={0}
-			style={{ opacity: previewOpacity }}
 			onClick={openViewersMode}
 			onKeyDown={(e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
@@ -49,7 +49,10 @@ export function StoryViewersPreview() {
 					return (
 						<ViewersPreviewAvatarWrap
 							key={viewer.id}
-							style={{ zIndex: topViewers.length - index }}
+							style={{
+								zIndex: topViewers.length - index,
+								opacity: previewOpacity,
+							}}
 						>
 							<Image
 								src={src}

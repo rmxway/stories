@@ -4,6 +4,7 @@ import { animate, motion, useMotionValue } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
 import { STORY_DURATION_SEC } from '../constants';
+import { useStoriesActiveSlideMedia } from './StoriesViewerContext';
 import {
 	ProgressFill,
 	ProgressFillComplete,
@@ -17,7 +18,6 @@ type ActiveStoryProgressFillProps = {
 	segmentIndex: number;
 	segmentReplayToken: number;
 	holdPaused: boolean;
-	isImageLoaded: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
 
@@ -25,12 +25,12 @@ function ActiveStoryProgressFill({
 	segmentIndex,
 	segmentReplayToken,
 	holdPaused,
-	isImageLoaded,
 	onSegmentComplete,
 }: ActiveStoryProgressFillProps) {
 	const scaleX = useMotionValue(0);
 	const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
 	const holdPausedRef = useRef(holdPaused);
+	const { activeSlideContentReady } = useStoriesActiveSlideMedia();
 
 	holdPausedRef.current = holdPaused;
 
@@ -39,7 +39,7 @@ function ActiveStoryProgressFill({
 		controlsRef.current?.stop();
 		controlsRef.current = null;
 
-		if (!isImageLoaded) {
+		if (!activeSlideContentReady) {
 			return;
 		}
 
@@ -63,7 +63,7 @@ function ActiveStoryProgressFill({
 	}, [
 		segmentIndex,
 		segmentReplayToken,
-		isImageLoaded,
+		activeSlideContentReady,
 		scaleX,
 		onSegmentComplete,
 	]);
@@ -78,7 +78,7 @@ function ActiveStoryProgressFill({
 		} else {
 			c.play();
 		}
-	}, [holdPaused, isImageLoaded, segmentReplayToken]);
+	}, [holdPaused, activeSlideContentReady, segmentReplayToken]);
 
 	return <MotionFill style={{ scaleX }} />;
 }
@@ -88,7 +88,6 @@ type StoriesProgressOwnProps = {
 	activeIndex: number;
 	segmentReplayToken: number;
 	holdPaused: boolean;
-	isImageLoaded: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
 
@@ -99,7 +98,6 @@ export const StoriesProgress = function StoriesProgress({
 	activeIndex,
 	segmentReplayToken,
 	holdPaused,
-	isImageLoaded,
 	onSegmentComplete,
 }: StoriesProgressProps) {
 	return (
@@ -112,7 +110,6 @@ export const StoriesProgress = function StoriesProgress({
 							segmentIndex={index}
 							segmentReplayToken={segmentReplayToken}
 							holdPaused={holdPaused}
-							isImageLoaded={isImageLoaded}
 							onSegmentComplete={onSegmentComplete}
 						/>
 					) : null}

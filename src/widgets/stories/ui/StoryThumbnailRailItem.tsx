@@ -1,18 +1,45 @@
 'use client';
 
-import { type MotionValue, useMotionValue, useTransform } from 'framer-motion';
-import Image from 'next/image';
+import {
+	motion,
+	type MotionValue,
+	useMotionValue,
+	useTransform,
+} from 'framer-motion';
+import {
+	ComponentProps,
+	type MouseEvent,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
+import { ImageFadeVariant } from '@/shared/lib/framer-motion';
 
 import { type StoryItem } from '../constants';
-import { StoryThumbnailItemWrap } from './styled';
+import { useStorySlidePhase } from '../lib/media';
+import {
+	useStoriesActiveSlideMedia,
+	useStoriesViewerInteraction,
+} from './StoriesViewerContext';
+import { StoryViewersPreview } from './StoryViewersPreview';
+import {
+	ShimmerOverlay,
+	StoryImageMain,
+	StorySkeleton,
+	StorySkeletonMotionWrap,
+	StoryTapZone,
+	StoryThumbnailItemWrap,
+} from './styled';
 
 type StoryThumbnailRailItemProps = {
 	story: StoryItem;
 	index: number;
-	activeIndex: number;
+	isActive: boolean;
 	sliderX: MotionValue<number>;
+	swipeThumbOpacityClassic: MotionValue<number>;
+	swipeStoryNeighborOpacity: MotionValue<number>;
 	/** Измеренная ширина карточки + gap (совпадает с CSS трека). */
 	itemStridePx: number;
 	onClick: () => void;
@@ -21,54 +48,157 @@ type StoryThumbnailRailItemProps = {
 export function StoryThumbnailRailItem({
 	story,
 	index,
-	activeIndex,
+	isActive,
 	sliderX,
 	itemStridePx,
+	swipeThumbOpacityClassic,
+	swipeStoryNeighborOpacity,
 	onClick,
 }: StoryThumbnailRailItemProps) {
-	const blur = story.src ? getBlurDataURL(story.src) : undefined;
+	const [leftTapPressed, setLeftTapPressed] = useState(false);
+	const [rightTapPressed, setRightTapPressed] = useState(false);
+	const storyBlur = useMemo(
+		() => (story?.src ? getBlurDataURL(story.src) : undefined),
+		[story?.src],
+	);
+	const { phase, onLoad, onError, mainImgRef, isContentReady } =
+		useStorySlidePhase(story?.src ?? '');
+	const { setActiveSlideContentReady } = useStoriesActiveSlideMedia();
+
+	useEffect(() => {
+		if (!isActive) {
+			return;
+		}
+		setActiveSlideContentReady(isContentReady);
+	}, [isActive, isContentReady, setActiveSlideContentReady]);
+
+	type StoryTapZonePointerPressProps = Pick<
+		ComponentProps<typeof StoryTapZone>,
+		'onPointerDown' | 'onPointerUp' | 'onPointerCancel' | 'onPointerLeave'
+	>;
+
+	function storyTapZonePressPointerProps(
+		setPressed: (value: boolean) => void,
+	): StoryTapZonePointerPressProps {
+		return {
+			onPointerDown: () => setPressed(true),
+			onPointerUp: () => setPressed(false),
+			onPointerCancel: () => setPressed(false),
+			onPointerLeave: () => setPressed(false),
+		};
+	}
+
+	const { onTapPreviousGuarded, onTapNextGuarded, viewersStage } =
+		useStoriesViewerInteraction();
 
 	/**
-	 * Числа из пропсов синхронизируем в MotionValue, чтобы `useTransform` реагировал
-	 * и на сдвиг `sliderX`, и на смену activeIndex / stride (иначе скачок при отпускании).
+	 * `itemStridePx` из React в MotionValue — чтобы `useTransform` подписался на смену шага.
+	 * Не используем `activeIndex` в формуле: он обновляется сразу, а `sliderX` догоняет через
+	 * `animate` в `useStoriesThumbnailsSlider` — иначе один кадр «новый активный уже 0, рельс ещё старый» и скачок scale/opacity.
 	 */
-	const activeIndexMv = useMotionValue(activeIndex);
 	const itemStrideMv = useMotionValue(itemStridePx);
-	activeIndexMv.set(activeIndex);
 	itemStrideMv.set(itemStridePx);
 
-	const progressT = useTransform(
-		[sliderX, activeIndexMv, itemStrideMv],
-		([x, ai, stride]) => {
-			const s = Number(stride);
-			if (s <= 0) {
-				return 0;
-			}
-			const i = Number(ai);
-			const d = Math.abs(Number(x) + index * s);
-			return index === i ? 0 : Math.min(1, d / s);
-		},
-	);
+	const progressT = useTransform([sliderX, itemStrideMv], ([x, stride]) => {
+		const s = Number(stride);
+		if (s <= 0) {
+			return 0;
+		}
+		const d = Math.abs(Number(x) + index * s);
+		return Math.min(1, d / s);
+	});
 
 	const scale = useTransform(progressT, (t) => 1 + (0.82 - 1) * t);
 	const opacity = useTransform(progressT, (t) => 1 + (0.55 - 1) * t);
 
-	/** Без layoutId: shared layout + spring по layout конфликтует со `scale`/`opacity` из MotionValue. */
+	const isActiveMv = useMotionValue(isActive ? 1 : 0);
+	isActiveMv.set(isActive ? 1 : 0);
+
+	/**
+	 * Неактивные: min(classic, storyN) — градиент на (−250, 0] без плато classic.
+	 * Активный: только classic — гашение в expanded (y → −500), в story у низа classic = 1.
+	 */
+	const swipeLayerOpacity = useTransform(
+		[swipeThumbOpacityClassic, swipeStoryNeighborOpacity, isActiveMv],
+		([classic, storyN, active]) => {
+			const c = Number(classic);
+			if (Number(active) >= 0.5) {
+				return c;
+			}
+			return Math.min(c, Number(storyN));
+		},
+	);
+
+	function onThumbWrapClick(e: MouseEvent<HTMLDivElement>): void {
+		const t = e.target;
+		if (!(t instanceof Element)) {
+			return;
+		}
+		if (t.closest('button') || t.closest('[data-viewers-preview="true"]')) {
+			return;
+		}
+		onClick();
+	}
+
+	const allowPointerEvents = viewersStage !== 'story' || isActive;
+
 	return (
 		<StoryThumbnailItemWrap
+			$allowPointerEvents={allowPointerEvents}
 			layout={false}
 			style={{ scale, opacity }}
-			onClick={onClick}
+			onClick={onThumbWrapClick}
 		>
-			<Image
-				src={story.src}
-				alt=""
-				fill
-				// sizes="(max-width: 900px) 40vw, 180px"
-				sizes="100%"
-				placeholder={blur ? 'blur' : 'empty'}
-				blurDataURL={blur}
-			/>
+			<motion.div style={{ opacity: swipeLayerOpacity }}>
+				<StorySkeletonMotionWrap
+					key="story-skeleton"
+					variants={ImageFadeVariant}
+					initial="hidden"
+					animate={phase === 'loading' ? 'visible' : 'hidden'}
+					exit="hidden"
+				>
+					<StorySkeleton aria-hidden />
+					<ShimmerOverlay aria-hidden />
+				</StorySkeletonMotionWrap>
+
+				<StoryImageMain
+					key={story.id}
+					ref={mainImgRef}
+					src={story.src}
+					alt=""
+					sizes="100%"
+					placeholder={storyBlur ? 'blur' : 'empty'}
+					blurDataURL={storyBlur}
+					$phase={phase}
+					onLoad={onLoad}
+					onError={onError}
+				/>
+				{viewersStage === 'story' && (
+					<>
+						<StoryTapZone
+							type="button"
+							aria-label="Предыдущий сторис"
+							$side="left"
+							$pressed={leftTapPressed}
+							{...storyTapZonePressPointerProps(
+								setLeftTapPressed,
+							)}
+							onClick={onTapPreviousGuarded}
+						/>
+						<StoryTapZone
+							type="button"
+							aria-label="Следующий сторис"
+							$side="right"
+							$pressed={rightTapPressed}
+							{...storyTapZonePressPointerProps(
+								setRightTapPressed,
+							)}
+							onClick={onTapNextGuarded}
+						/>
+					</>
+				)}
+				<StoryViewersPreview />
+			</motion.div>
 		</StoryThumbnailItemWrap>
 	);
 }

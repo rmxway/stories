@@ -9,8 +9,10 @@ import {
 	useState,
 } from 'react';
 
+import type { ViewersStage } from '../../constants';
+
 const STORIES_THUMB_ASPECT_H_OVER_W = 1.8;
-const TRACK_GAP_PX = 30;
+const TRACK_GAP_PX = 20;
 
 function getStoriesThumbStrideFallbackPx(): number {
 	const assumedViewportH = 812;
@@ -61,13 +63,17 @@ type UseStoriesThumbnailsSliderArgs = {
 	activeIndex: number;
 	storiesLength: number;
 	onChangeActiveIndex: (index: number) => void;
+	/** В режиме story смена активного слайда без анимации рельса. */
+	viewersStage: ViewersStage;
 };
 
 export function useStoriesThumbnailsSlider({
 	activeIndex,
 	storiesLength,
 	onChangeActiveIndex,
+	viewersStage,
 }: UseStoriesThumbnailsSliderArgs) {
+	const instantRail = viewersStage === 'story';
 	const [itemStridePx, setItemStridePx] = useState(INITIAL_ITEM_STRIDE_PX);
 	const sliderTrackRef = useRef<HTMLDivElement>(null);
 	const sliderX = useMotionValue(-activeIndex * INITIAL_ITEM_STRIDE_PX);
@@ -121,13 +127,18 @@ export function useStoriesThumbnailsSlider({
 				return;
 			}
 			sliderXSnapAnimationRef.current?.stop();
+			if (instantRail) {
+				sliderX.set(targetX);
+				sliderXSnapAnimationRef.current = null;
+				return;
+			}
 			sliderXSnapAnimationRef.current = animate(
 				sliderX,
 				targetX,
 				snapSpringConfig(reducedMotion),
 			);
 		},
-		[reducedMotion, sliderX],
+		[instantRail, reducedMotion, sliderX],
 	);
 
 	useEffect(() => {

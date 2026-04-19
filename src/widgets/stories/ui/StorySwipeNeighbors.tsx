@@ -7,23 +7,13 @@ import {
 	useStoriesThumbnailsSlider,
 	useViewersThumbnailStripInteraction,
 } from '../lib/gestures';
-import {
-	SWIPE_UP_DRAG_MAX_PX,
-	SWIPE_UP_THUMBNAILS_PX,
-} from '../lib/motion';
+import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../lib/motion';
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
 } from './StoriesViewerContext';
 import { StoryThumbnailRailItem } from './StoryThumbnailRailItem';
-import {
-	StoriesSliderTrack,
-	StorySwipeSliderContent,
-	StorySwipeSliderWrap,
-} from './styled';
-
-/** До этой точки по Y рельс миниатюр остаётся скрыт при открытии из story (как раньше [0, -28, …]). */
-const SWIPE_THUMB_STRIP_EARLY_PX = -28;
+import { StorySwipeSliderContent, StorySwipeSliderWrap } from './styled';
 
 export function StorySwipeNeighbors() {
 	const { stories, activeIndex, onChangeActiveIndex } =
@@ -37,6 +27,7 @@ export function StorySwipeNeighbors() {
 		closeViewersMode,
 		collapseViewersToThumbnails,
 		thumbnailRailY,
+		storyScale,
 	} = useStoriesViewerInteraction();
 
 	const {
@@ -51,6 +42,7 @@ export function StorySwipeNeighbors() {
 		activeIndex,
 		storiesLength: stories.length,
 		onChangeActiveIndex,
+		viewersStage,
 	});
 
 	const {
@@ -80,16 +72,21 @@ export function StorySwipeNeighbors() {
 		}, 70);
 	}, [allowThumbClickRef, onPointerCancel]);
 
-	/** 0 → story; миниатюры видны у `SWIPE_UP_THUMBNAILS_PX`; в expanded — скрыт. */
-	const swipeRevealOpacity = useTransform(
+	/** Как раньше для thumbnails / expanded: один множитель на все слайды. */
+	const swipeThumbOpacityClassic = useTransform(
 		swipeUpDragY,
-		[
-			SWIPE_UP_DRAG_MAX_PX,
-			SWIPE_UP_THUMBNAILS_PX,
-			SWIPE_THUMB_STRIP_EARLY_PX,
-			0,
-		],
-		[0, 1, 0, 0],
+		[SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX, 0],
+		[0, 1, 1],
+	);
+
+	/**
+	 * Только для `viewersStage === 'story'`: соседи скрыты внизу, к миниатюрам раскрываются;
+	 * активный кадр доклеивается в `StoryThumbnailRailItem`.
+	 */
+	const swipeStoryNeighborOpacity = useTransform(
+		swipeUpDragY,
+		[SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX, 0],
+		[1, 1, 0],
 	);
 
 	const interactive =
@@ -97,62 +94,54 @@ export function StorySwipeNeighbors() {
 		isViewersMode ||
 		isVerticalSwipeDownCloseActive;
 
-	if (stories.length <= 1) {
-		return null;
-	}
-
 	return (
 		<StorySwipeSliderContent
 			style={{
-				x: '-50%',
+				scale: storyScale,
 				y: thumbnailRailY,
 			}}
 		>
 			<StorySwipeSliderWrap
-				data-stories-thumbnail-strip="true"
 				data-viewers-interactive={interactive ? 'true' : undefined}
 				drag={interactive ? 'x' : false}
 				dragConstraints={{ left: maxDragLeft, right: 0 }}
 				dragElastic={0.12}
 				dragMomentum={false}
 				dragSnapToOrigin={false}
-				dragTransition={{
-					power: 0.2,
-					timeConstant: 200,
-					bounceDamping: 40,
-				}}
 				style={{
 					x: sliderX,
-					opacity: swipeRevealOpacity,
-					pointerEvents: interactive ? 'auto' : 'none',
+					/* В режиме story drag выключен, но тап-зоны должны получать события;
+					 * `none` ломает hit-testing у потомков в части окружений. */
+					pointerEvents: 'auto',
 				}}
 				onDragStart={dragStart}
 				onDragEnd={dragEnd}
+				ref={sliderTrackRef}
 				onPointerCancel={onPointerCancelCombined}
 				{...stripPointerProps}
 			>
-				<StoriesSliderTrack ref={sliderTrackRef}>
-					{stories.map((story, i) => (
-						<StoryThumbnailRailItem
-							key={story.id}
-							story={story}
-							index={i}
-							activeIndex={activeIndex}
-							sliderX={sliderX}
-							itemStridePx={itemStridePx}
-							onClick={() => {
-								if (!allowThumbClickRef.current) {
-									return;
-								}
-								if (i === activeIndex) {
-									closeViewersMode();
-								} else {
-									onChangeActiveIndex(i);
-								}
-							}}
-						/>
-					))}
-				</StoriesSliderTrack>
+				{stories.map((story, i) => (
+					<StoryThumbnailRailItem
+						key={story.id}
+						story={story}
+						index={i}
+						isActive={i === activeIndex}
+						sliderX={sliderX}
+						itemStridePx={itemStridePx}
+						swipeThumbOpacityClassic={swipeThumbOpacityClassic}
+						swipeStoryNeighborOpacity={swipeStoryNeighborOpacity}
+						onClick={() => {
+							if (!allowThumbClickRef.current) {
+								return;
+							}
+							if (i === activeIndex) {
+								closeViewersMode();
+							} else {
+								onChangeActiveIndex(i);
+							}
+						}}
+					/>
+				))}
 			</StorySwipeSliderWrap>
 		</StorySwipeSliderContent>
 	);

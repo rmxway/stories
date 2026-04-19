@@ -18,8 +18,6 @@ const storyShimmerSlide = keyframes`
 const STORY_CARD_ASPECT_RATIO_H_OVER_W = 1.8;
 const STORY_CARD_ASPECT_RATIO = `1/${STORY_CARD_ASPECT_RATIO_H_OVER_W}`;
 const STORY_CARD_MIN_WIDTH = '120px';
-const STORY_CARD_HEIGHT_AT_HALF_VIEWPORT = 'min(50dvh, 50%)';
-const STORY_CARD_WIDTH_AT_HALF_VIEWPORT = `calc(50dvh / ${STORY_CARD_ASPECT_RATIO_H_OVER_W})`;
 
 export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
@@ -273,11 +271,6 @@ export const StoryImageWrap = styled(motion.div)<{ $viewersMode?: boolean }>`
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
 	pointer-events: ${({ $viewersMode }) => ($viewersMode ? 'none' : 'auto')};
-	transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-
-	@media (prefers-reduced-motion: reduce) {
-		transition: none;
-	}
 `;
 
 export const StoryImageInner = styled(motion.div)`
@@ -288,7 +281,7 @@ export const StoryImageInner = styled(motion.div)`
 	width: 100%;
 	border-radius: 8px;
 	overflow: hidden;
-	transform-origin: center center;
+	transform-origin: top center;
 `;
 
 export const StoryTapZone = styled.button<{
@@ -417,15 +410,27 @@ export const StoryImageMain = styled(Image).attrs<{
 	}
 `;
 
-export const ViewersPreviewWrap = styled(motion.div)`
+export const StoryScaledBlock = styled(motion.div)`
 	position: absolute;
-	bottom: 0;
+	top: 0;
 	left: 0;
+	width: 100%;
+	height: auto;
+	min-height: 100px;
+	z-index: 10;
+	pointer-events: none;
+	transform-origin: top center;
+`;
+
+export const ViewersPreviewWrap = styled.div`
+	position: absolute;
+	left: 0;
+	bottom: 0;
 	display: flex;
 	align-items: center;
 	height: clamp(40px, 8cqi, 60px);
 	gap: clamp(4px, 3cqi, 12px);
-	z-index: 10;
+	z-index: 200;
 	pointer-events: auto;
 	cursor: pointer;
 	user-select: none;
@@ -438,7 +443,7 @@ export const ViewersPreviewAvatars = styled.div`
 	padding-left: 10px; /* To account for first child margin if needed, but not strictly necessary */
 `;
 
-export const ViewersPreviewAvatarWrap = styled.div`
+export const ViewersPreviewAvatarWrap = styled(motion.div)`
 	width: clamp(22px, 7cqi, 32px);
 	height: clamp(22px, 7cqi, 32px);
 	border-radius: 50%;
@@ -470,7 +475,7 @@ export const StoriesViewersModeRoot = styled(motion.div)`
 	left: 50%;
 	transform: translateX(-50%);
 	width: 100%;
-	bottom: 0;
+	bottom: -50%;
 	z-index: 25;
 	pointer-events: none;
 	transform-origin: bottom center;
@@ -589,63 +594,54 @@ export const ViewersListItemInfo = styled.div`
 	}
 `;
 
-export const StoriesSliderWrap = styled(motion.div)`
-	position: absolute;
-	top: 8%;
-	left: 0;
-	right: 0;
-	height: 52%;
-	z-index: 20;
-	display: flex;
-	align-items: center;
-	touch-action: none;
-	pointer-events: auto;
-`;
-
 export const StorySwipeSliderContent = styled(motion.div)`
 	position: absolute;
 	top: 0;
-	left: 50%;
-	min-height: 0;
-	height: ${STORY_CARD_HEIGHT_AT_HALF_VIEWPORT};
-	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
+	left: 0;
 	z-index: 1;
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	width: 100%;
+	pointer-events: auto;
+	transform-origin: top center;
 `;
 
 export const StorySwipeSliderWrap = styled(motion.div)`
-	height: 100%;
-	box-sizing: border-box;
-	width: 100%;
-`;
-
-/** Горизонтальный трек: центрирование активной миниатюры; размеры согласованы с `StoryThumbnailItemWrap`. */
-export const StoriesSliderTrack = styled.div`
 	position: relative;
+	box-sizing: border-box;
+	width: max-content;
+	height: 100%;
 	display: flex;
 	gap: 20px;
-	height: 100%;
-	width: max-content;
 `;
 
-export const StoryThumbnailItemWrap = styled(motion.div)`
-	position: relative;
-	max-width: 100%;
-	width: ${STORY_CARD_WIDTH_AT_HALF_VIEWPORT};
-	height: 100%;
-	max-height: 50dvh;
-	max-width: 100%;
-	// min-width: ${STORY_CARD_MIN_WIDTH};
-	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
-	border-radius: 4px;
-	overflow: hidden;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
+/** Горизонтальный трек: ширина слайда совпадает с вьюпортом (100cqi). */
 
-	img {
-		object-fit: cover;
-		user-select: none;
-		-webkit-user-select: none;
-		-webkit-touch-callout: none;
-		pointer-events: none;
-	}
+export const StoryThumbnailItemWrap = styled(motion.div)<{
+	$allowPointerEvents?: boolean;
+}>`
+	${({ $allowPointerEvents }) => css`
+		position: relative;
+		box-sizing: border-box;
+		flex-shrink: 0;
+		min-width: ${STORY_CARD_MIN_WIDTH};
+		width: 100cqi;
+		height: 100%;
+		border-radius: 4px;
+		overflow: hidden;
+		pointer-events: ${$allowPointerEvents ? 'auto' : 'none'};
+
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+
+		img {
+			object-fit: cover;
+			user-select: none;
+			-webkit-user-select: none;
+			-webkit-touch-callout: none;
+			pointer-events: none;
+		}
+	`}
 `;

@@ -62,7 +62,7 @@ export function useStoryViewerSnapMotion({
 			const config = reducedMotion
 				? {
 						type: 'tween' as const,
-						duration: 0.18,
+						duration: 0.2,
 						ease: 'easeOut' as const,
 					}
 				: { type: 'spring' as const, damping: 26, stiffness: 320 };
@@ -115,8 +115,8 @@ export function useStoryViewerSnapMotion({
 				setIsVerticalSwipeUpActive(false);
 				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX);
 			} else {
+				setViewersStage('story');
 				void animateSwipeTo(0, () => {
-					setViewersStage('story');
 					setIsVerticalSwipeUpActive(false);
 				});
 			}
@@ -167,8 +167,8 @@ export function useStoryViewerSnapMotion({
 				y > MID_SNAP_STORY_THUMB_PX ||
 				(strongDown && y > SWIPE_UP_THUMBNAILS_PX)
 			) {
+				setViewersStage('story');
 				void animateSwipeTo(0, () => {
-					setViewersStage('story');
 					setIsVerticalSwipeDownCloseActive(false);
 				});
 				return;
