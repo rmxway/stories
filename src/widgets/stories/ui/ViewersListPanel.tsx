@@ -67,15 +67,21 @@ export function ViewersListPanel({
 		>
 			<ViewersPanelHeader>
 				<ViewersPanelTitle>
-					{formatStoryViewCount(count)}
+					{count ? (
+						<span>
+							{count} {formatStoryViewCount(count)}
+						</span>
+					) : (
+						'Нет просмотров'
+					)}
+					<CloseButton
+						type="button"
+						aria-label="Закрыть просмотры"
+						onClick={onClose}
+					>
+						<Icon icon="times-small" size={5} />
+					</CloseButton>
 				</ViewersPanelTitle>
-				<CloseButton
-					type="button"
-					aria-label="Закрыть просмотры"
-					onClick={onClose}
-				>
-					<Icon icon="times-small" size={5} />
-				</CloseButton>
 			</ViewersPanelHeader>
 			<ViewersPanelList $lockVerticalTouch={lockVerticalTouch}>
 				{hasViewers ? (

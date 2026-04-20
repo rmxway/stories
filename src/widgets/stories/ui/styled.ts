@@ -117,7 +117,7 @@ export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
 	display: flex;
 	flex-direction: column;
-	padding: 10px 0 clamp(35px, 5.5cqi, 50px);
+	padding: 10px 0 clamp(35px, 5.5cqi, 45px);
 	container-type: inline-size;
 
 	user-select: none;
@@ -144,9 +144,9 @@ export const VisuallyHidden = styled.span`
 `;
 
 export const CloseButton = styled.button<{ $disabled?: boolean }>`
+	position: relative;
 	width: clamp(20px, 6.5cqi, 40px);
 	height: clamp(20px, 6.5cqi, 40px);
-	position: relative;
 	z-index: 1;
 	border: none;
 	background: transparent;
@@ -422,25 +422,26 @@ export const StoryScaledBlock = styled(motion.div)`
 	transform-origin: top center;
 `;
 
-export const ViewersPreviewWrap = styled.div`
-	position: absolute;
-	left: 0;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	height: clamp(40px, 8cqi, 60px);
-	gap: clamp(4px, 3cqi, 12px);
-	z-index: 200;
-	pointer-events: auto;
-	cursor: pointer;
-	user-select: none;
-	padding: clamp(4px, 3cqi, 12px);
+export const ViewersPreviewWrap = styled(motion.div)<{
+	$interactive?: boolean;
+}>`
+	${({ $interactive = true }) => css`
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		height: clamp(40px, 8cqi, 60px);
+		z-index: 200;
+		pointer-events: ${$interactive ? 'auto' : 'none'};
+		cursor: ${$interactive ? 'pointer' : 'default'};
+		user-select: none;
+		padding: clamp(4px, 3cqi, 12px);
+	`}
 `;
 
-export const ViewersPreviewAvatars = styled.div`
+export const ViewersPreviewAvatars = styled(motion.div)`
 	display: flex;
 	align-items: center;
-	padding-left: 10px; /* To account for first child margin if needed, but not strictly necessary */
 `;
 
 export const ViewersPreviewAvatarWrap = styled(motion.div)`
@@ -475,7 +476,7 @@ export const StoriesViewersModeRoot = styled(motion.div)`
 	left: 50%;
 	transform: translateX(-50%);
 	width: 100%;
-	bottom: -50%;
+	bottom: 0;
 	z-index: 25;
 	pointer-events: none;
 	transform-origin: bottom center;
@@ -515,12 +516,19 @@ export const ViewersPanelHeader = styled.div`
 `;
 
 export const ViewersPanelTitle = styled.h3`
+	position: relative;
 	color: #fff;
 	font-size: clamp(12px, 4cqi, 16px);
 	font-weight: 600;
 	margin: 0;
 	text-align: center;
 	width: 100%;
+
+	${CloseButton} {
+		position: absolute;
+		right: 0;
+		top: -5px;
+	}
 `;
 
 export const ViewersPanelList = styled.div<{
@@ -619,29 +627,52 @@ export const StorySwipeSliderWrap = styled(motion.div)`
 
 /** Горизонтальный трек: ширина слайда совпадает с вьюпортом (100cqi). */
 
-export const StoryThumbnailItemWrap = styled(motion.div)<{
+export const StoryThumbnailItemWrap = styled(motion.div)`
+	position: relative;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	min-width: ${STORY_CARD_MIN_WIDTH};
+	width: 100cqi;
+	height: 100%;
+	border-radius: 4px;
+	overflow: hidden;
+	pointer-events: auto;
+	transform-origin: center;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+
+	img {
+		object-fit: cover;
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+		pointer-events: none;
+	}
+`;
+
+export const StoryThumbnailPreviewLayer = styled(motion.div)`
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-start;
+	pointer-events: none;
+	z-index: 20;
+`;
+
+export const StoryThumbnailPackedOffsetLayer = styled(motion.div)`
+	position: relative;
+	pointer-events: none;
+`;
+
+export const StoryThumbnailScaleLayer = styled(motion.div)<{
 	$allowPointerEvents?: boolean;
 }>`
-	${({ $allowPointerEvents }) => css`
-		position: relative;
-		box-sizing: border-box;
-		flex-shrink: 0;
-		min-width: ${STORY_CARD_MIN_WIDTH};
-		width: 100cqi;
-		height: 100%;
-		border-radius: 4px;
-		overflow: hidden;
-		pointer-events: ${$allowPointerEvents ? 'auto' : 'none'};
-
-		cursor: pointer;
-		-webkit-tap-highlight-color: transparent;
-
-		img {
-			object-fit: cover;
-			user-select: none;
-			-webkit-user-select: none;
-			-webkit-touch-callout: none;
-			pointer-events: none;
-		}
-	`}
+	width: 100%;
+	height: 100%;
+	transform-origin: top center;
+	pointer-events: ${({ $allowPointerEvents = true }) =>
+		$allowPointerEvents ? 'auto' : 'none'};
 `;

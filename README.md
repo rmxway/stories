@@ -11,17 +11,17 @@
 
 ## 🛠️ Скрипты
 
-| Команда                       | Назначение                                                                 |
-| ----------------------------- | -------------------------------------------------------------------------- |
-| `yarn dev`                    | Режим разработки                                                           |
+| Команда                       | Назначение                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `yarn dev`                    | Режим разработки                                                             |
 | `yarn build`                  | `prebuild` (blur-плейсхолдеры) + продакшен-сборка Next.js                    |
-| `yarn start`                  | Запуск собранного приложения                                                |
-| `yarn lint` / `yarn lint:fix` | ESLint                                                                     |
-| `yarn pretty`                 | Форматирование Prettier                                                    |
-| `yarn typecheck`              | Проверка типов без emit                                                    |
-| `yarn icofont`                | Генерация иконочного шрифта (fantasticon → `public/assets/fonts/icofont`)   |
+| `yarn start`                  | Запуск собранного приложения                                                 |
+| `yarn lint` / `yarn lint:fix` | ESLint                                                                       |
+| `yarn pretty`                 | Форматирование Prettier                                                      |
+| `yarn typecheck`              | Проверка типов без emit                                                      |
+| `yarn icofont`                | Генерация иконочного шрифта (fantasticon → `public/assets/fonts/icofont`)    |
 | `yarn img:prog`               | Подготовка прогрессивных JPEG (см. `scripts/make-progressive-img-jpegs.mjs`) |
-| `yarn img:opt`                | Оптимизация изображений (см. `scripts/optimize-images.mjs`)                 |
+| `yarn img:opt`                | Оптимизация изображений (см. `scripts/optimize-images.mjs`)                  |
 
 Перед сборкой `prebuild` генерирует `src/generated/blur-map.json` — карту размытых data URL для `placeholder="blur"` у картинок историй (скрипт `scripts/generate-blur-data-urls.mjs`, **sharp**). После добавления новых файлов в `public/img/…` имеет смысл снова выполнить `yarn build` или запустить генератор вручную.
 
@@ -39,13 +39,13 @@
 
 Логика разнесена по папкам; из UI удобно импортировать через **barrel** (`index.ts` в каждой папке):
 
-| Папка        | Назначение |
-| ------------ | ---------- |
+| Папка         | Назначение                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `navigation/` | Выбор начального индекса, разрешение прогресса по списку (`getInitialOpenIndex`, `resolveStoriesProgressComplete`). |
-| `storage/`    | `loadSeenIds` / `saveSeenIds`. |
-| `media/`      | Preload и фазы загрузки кадра/аватара (`useStorySlidePhase`, `useProgressiveAvatarPhase`). |
-| `gestures/`   | Жесты оболочки и рельса миниатюр, константы DOM, `useStoryViewerInteractions` и связанные хуки. |
-| `motion/`     | Константы motion для viewers, snap после жеста (`useStoryViewerSnapMotion`). |
+| `storage/`    | `loadSeenIds` / `saveSeenIds`.                                                                                      |
+| `media/`      | Preload и фазы загрузки кадра/аватара (`useStorySlidePhase`, `useProgressiveAvatarPhase`).                          |
+| `gestures/`   | Жесты оболочки и рельса миниатюр, константы DOM, `useStoryViewerInteractions` и связанные хуки.                     |
+| `motion/`     | Константы motion для viewers, snap после жеста (`useStoryViewerSnapMotion`).                                        |
 
 Пример: `import { useStoryViewerInteractions } from '@/widgets/stories/lib/gestures'` или относительный путь `../lib/gestures` из файлов в `ui/`.
 

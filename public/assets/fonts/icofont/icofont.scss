@@ -1,51 +1,53 @@
-@use 'sass:map';
+@use "sass:map";
 
 $icofont-font: 'icofont';
 
 @font-face {
-	font-family: $icofont-font;
-	src:
-		url('.//icofont.ttf?0e5dc025e7dfe78caca61f4793b54dd4')
-			format('truetype'),
-		url('.//icofont.woff?0e5dc025e7dfe78caca61f4793b54dd4') format('woff'),
-		url('.//icofont.woff2?0e5dc025e7dfe78caca61f4793b54dd4') format('woff2');
-	font-weight: normal;
-	font-style: normal;
-	font-display: block;
+    font-family: $icofont-font;
+    src: url(".//icofont.ttf?f7e489261e7fa1a38024073442e4dc90") format("truetype"),
+url(".//icofont.woff?f7e489261e7fa1a38024073442e4dc90") format("woff"),
+url(".//icofont.woff2?f7e489261e7fa1a38024073442e4dc90") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
 }
 
 .icofont {
-	font-family: $icofont-font !important;
-	font-style: normal;
-	font-weight: normal !important;
-	font-variant: normal;
-	text-transform: none;
-	font-size: 1rem;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+    font-family: $icofont-font !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    font-size: 1rem;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 $icofont-map: (
-	'trash': '\f101',
-	'times-small': '\f102',
-	'favorite': '\f103',
-	'favorite-fill': '\f104',
-	'arrow-down': '\f105',
+    'trash': '\f101',
+    'times-small': '\f102',
+    'favorite': '\f103',
+    'favorite-fill': '\f104',
+    'eye': '\f105',
+    'arrow-down': '\f106',
 );
 
 .icofont-trash:before {
-	content: map.get($icofont-map, 'trash');
+    content: map.get($icofont-map, 'trash');
 }
 .icofont-times-small:before {
-	content: map.get($icofont-map, 'times-small');
+    content: map.get($icofont-map, 'times-small');
 }
 .icofont-favorite:before {
-	content: map.get($icofont-map, 'favorite');
+    content: map.get($icofont-map, 'favorite');
 }
 .icofont-favorite-fill:before {
-	content: map.get($icofont-map, 'favorite-fill');
+    content: map.get($icofont-map, 'favorite-fill');
+}
+.icofont-eye:before {
+    content: map.get($icofont-map, 'eye');
 }
 .icofont-arrow-down:before {
-	content: map.get($icofont-map, 'arrow-down');
+    content: map.get($icofont-map, 'arrow-down');
 }

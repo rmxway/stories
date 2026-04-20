@@ -1,11 +1,6 @@
 'use client';
 
-import {
-	motion,
-	type MotionValue,
-	useMotionValue,
-	useTransform,
-} from 'framer-motion';
+import { type MotionValue, useMotionValue, useTransform } from 'framer-motion';
 import {
 	ComponentProps,
 	type MouseEvent,
@@ -31,6 +26,9 @@ import {
 	StorySkeletonMotionWrap,
 	StoryTapZone,
 	StoryThumbnailItemWrap,
+	StoryThumbnailPackedOffsetLayer,
+	StoryThumbnailPreviewLayer,
+	StoryThumbnailScaleLayer,
 } from './styled';
 
 type StoryThumbnailRailItemProps = {
@@ -44,6 +42,8 @@ type StoryThumbnailRailItemProps = {
 	itemStridePx: number;
 	onClick: () => void;
 };
+
+const STORY_THUMBNAIL_TRACK_GAP_PX = 20;
 
 export function StoryThumbnailRailItem({
 	story,
@@ -88,8 +88,13 @@ export function StoryThumbnailRailItem({
 		};
 	}
 
-	const { onTapPreviousGuarded, onTapNextGuarded, viewersStage } =
-		useStoriesViewerInteraction();
+	const {
+		onTapPreviousGuarded,
+		onTapNextGuarded,
+		viewersStage,
+		storyHeight,
+		storyScale,
+	} = useStoriesViewerInteraction();
 
 	/**
 	 * `itemStridePx` из React в MotionValue — чтобы `useTransform` подписался на смену шага.
@@ -108,8 +113,26 @@ export function StoryThumbnailRailItem({
 		return Math.min(1, d / s);
 	});
 
-	const scale = useTransform(progressT, (t) => 1 + (0.82 - 1) * t);
+	const scale = useTransform(progressT, (t) => 1 + (0.92 - 1) * t);
 	const opacity = useTransform(progressT, (t) => 1 + (0.55 - 1) * t);
+	const packedOffsetX = useTransform(
+		[storyScale, sliderX, itemStrideMv],
+		([storyScaleValue, x, stride]) => {
+			const stridePx = Number(stride);
+			if (stridePx <= 0) {
+				return 0;
+			}
+
+			const cardWidthPx = Math.max(
+				0,
+				stridePx - STORY_THUMBNAIL_TRACK_GAP_PX,
+			);
+			const railProgress = -Number(x) / stridePx;
+			const shrinkOffsetPx = (1 - Number(storyScaleValue)) * cardWidthPx;
+
+			return (railProgress - index) * shrinkOffsetPx;
+		},
+	);
 
 	const isActiveMv = useMotionValue(isActive ? 1 : 0);
 	isActiveMv.set(isActive ? 1 : 0);
@@ -143,62 +166,74 @@ export function StoryThumbnailRailItem({
 	const allowPointerEvents = viewersStage !== 'story' || isActive;
 
 	return (
-		<StoryThumbnailItemWrap
-			$allowPointerEvents={allowPointerEvents}
-			layout={false}
-			style={{ scale, opacity }}
-			onClick={onThumbWrapClick}
+		<StoryThumbnailPackedOffsetLayer
+			style={{ opacity: swipeLayerOpacity, x: packedOffsetX }}
 		>
-			<motion.div style={{ opacity: swipeLayerOpacity }}>
-				<StorySkeletonMotionWrap
-					key="story-skeleton"
-					variants={ImageFadeVariant}
-					initial="hidden"
-					animate={phase === 'loading' ? 'visible' : 'hidden'}
-					exit="hidden"
+			<StoryThumbnailScaleLayer
+				$allowPointerEvents={allowPointerEvents}
+				style={{ scale: storyScale }}
+			>
+				<StoryThumbnailItemWrap
+					style={{ scale, opacity }}
+					onClick={onThumbWrapClick}
 				>
-					<StorySkeleton aria-hidden />
-					<ShimmerOverlay aria-hidden />
-				</StorySkeletonMotionWrap>
+					<StorySkeletonMotionWrap
+						key="story-skeleton"
+						variants={ImageFadeVariant}
+						initial="hidden"
+						animate={phase === 'loading' ? 'visible' : 'hidden'}
+						exit="hidden"
+					>
+						<StorySkeleton aria-hidden />
+						<ShimmerOverlay aria-hidden />
+					</StorySkeletonMotionWrap>
 
-				<StoryImageMain
-					key={story.id}
-					ref={mainImgRef}
-					src={story.src}
-					alt=""
-					sizes="100%"
-					placeholder={storyBlur ? 'blur' : 'empty'}
-					blurDataURL={storyBlur}
-					$phase={phase}
-					onLoad={onLoad}
-					onError={onError}
+					<StoryImageMain
+						key={story.id}
+						ref={mainImgRef}
+						src={story.src}
+						alt=""
+						sizes="100%"
+						placeholder={storyBlur ? 'blur' : 'empty'}
+						blurDataURL={storyBlur}
+						$phase={phase}
+						onLoad={onLoad}
+						onError={onError}
+					/>
+					{viewersStage === 'story' && (
+						<>
+							<StoryTapZone
+								type="button"
+								aria-label="Предыдущий сторис"
+								$side="left"
+								$pressed={leftTapPressed}
+								{...storyTapZonePressPointerProps(
+									setLeftTapPressed,
+								)}
+								onClick={onTapPreviousGuarded}
+							/>
+							<StoryTapZone
+								type="button"
+								aria-label="Следующий сторис"
+								$side="right"
+								$pressed={rightTapPressed}
+								{...storyTapZonePressPointerProps(
+									setRightTapPressed,
+								)}
+								onClick={onTapNextGuarded}
+							/>
+						</>
+					)}
+				</StoryThumbnailItemWrap>
+			</StoryThumbnailScaleLayer>
+			<StoryThumbnailPreviewLayer
+				style={{ height: storyHeight, scale, opacity }}
+			>
+				<StoryViewersPreview
+					disabled={!allowPointerEvents}
+					viewers={story.viewers}
 				/>
-				{viewersStage === 'story' && (
-					<>
-						<StoryTapZone
-							type="button"
-							aria-label="Предыдущий сторис"
-							$side="left"
-							$pressed={leftTapPressed}
-							{...storyTapZonePressPointerProps(
-								setLeftTapPressed,
-							)}
-							onClick={onTapPreviousGuarded}
-						/>
-						<StoryTapZone
-							type="button"
-							aria-label="Следующий сторис"
-							$side="right"
-							$pressed={rightTapPressed}
-							{...storyTapZonePressPointerProps(
-								setRightTapPressed,
-							)}
-							onClick={onTapNextGuarded}
-						/>
-					</>
-				)}
-				<StoryViewersPreview />
-			</motion.div>
-		</StoryThumbnailItemWrap>
+			</StoryThumbnailPreviewLayer>
+		</StoryThumbnailPackedOffsetLayer>
 	);
 }

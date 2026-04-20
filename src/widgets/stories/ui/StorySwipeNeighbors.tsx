@@ -27,7 +27,6 @@ export function StorySwipeNeighbors() {
 		closeViewersMode,
 		collapseViewersToThumbnails,
 		thumbnailRailY,
-		storyScale,
 	} = useStoriesViewerInteraction();
 
 	const {
@@ -97,7 +96,6 @@ export function StorySwipeNeighbors() {
 	return (
 		<StorySwipeSliderContent
 			style={{
-				scale: storyScale,
 				y: thumbnailRailY,
 			}}
 		>
