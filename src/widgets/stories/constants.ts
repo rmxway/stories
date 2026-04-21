@@ -1,5 +1,8 @@
 export const STORIES_STORAGE_KEY = 'stories:seenIds';
 
+/** Событие после изменения списка просмотренных в storage (та же вкладка). */
+export const STORIES_SEEN_IDS_CHANGED_EVENT = 'stories:seenIdsChanged' as const;
+
 /** Shared layout id (Framer Motion) между превью и оболочкой просмотра сторис. */
 export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 

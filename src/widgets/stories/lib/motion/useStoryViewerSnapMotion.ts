@@ -34,7 +34,6 @@ type UseStoryViewerSnapMotionArgs = {
 export function useStoryViewerSnapMotion({
 	dismissDragY,
 	swipeUpDragY,
-	reducedMotion,
 	onClose,
 	suppressTapClickRef,
 	setViewersStage,
@@ -59,17 +58,15 @@ export function useStoryViewerSnapMotion({
 
 	const animateDismissTo = useCallback(
 		(target: number, onComplete?: () => void) => {
-			const config = reducedMotion
-				? {
-						type: 'tween' as const,
-						duration: 0.2,
-						ease: 'easeOut' as const,
-					}
-				: { type: 'spring' as const, damping: 26, stiffness: 320 };
+			const config = {
+				type: 'tween' as const,
+				duration: 0.2,
+				ease: 'easeOut' as const,
+			};
 
 			return animate(dismissDragY, target, { ...config, onComplete });
 		},
-		[dismissDragY, reducedMotion],
+		[dismissDragY],
 	);
 
 	const animateSwipeTo = useCallback(

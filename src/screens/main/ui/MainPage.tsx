@@ -1,10 +1,38 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
+
+import { Button } from '@/shared/ui';
 import { StoriesWidget } from '@/widgets/stories';
+import { STORIES_SEEN_IDS_CHANGED_EVENT } from '@/widgets/stories/constants';
+import { clearSeenIds, loadSeenIds } from '@/widgets/stories/lib/storage';
 
 import { Lead, Root } from './styled';
 
+function subscribeSeenStorage(onStoreChange: () => void) {
+	if (typeof window === 'undefined') {
+		return () => undefined;
+	}
+	window.addEventListener(STORIES_SEEN_IDS_CHANGED_EVENT, onStoreChange);
+	return () => {
+		window.removeEventListener(
+			STORIES_SEEN_IDS_CHANGED_EVENT,
+			onStoreChange,
+		);
+	};
+}
+
+function getSeenStorageHasEntries(): boolean {
+	return loadSeenIds().length > 0;
+}
+
 export function MainPage() {
+	const hasSeenEntries = useSyncExternalStore(
+		subscribeSeenStorage,
+		getSeenStorageHasEntries,
+		() => false,
+	);
+
 	return (
 		<Root>
 			<h1>Stories</h1>
@@ -18,6 +46,14 @@ export function MainPage() {
 				<code>theme</code>.
 			</Lead>
 			<StoriesWidget />
+			<br />
+			<Button
+				$variant="danger"
+				onClick={() => clearSeenIds()}
+				disabled={!hasSeenEntries}
+			>
+				Очистить просмотренные
+			</Button>
 		</Root>
 	);
 }

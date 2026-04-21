@@ -9,6 +9,7 @@ import {
 	useState,
 } from 'react';
 
+import { STORIES_SEEN_IDS_CHANGED_EVENT } from '../constants';
 import { isEditableTarget } from '../lib/isEditableTarget';
 import {
 	getInitialOpenIndex,
@@ -34,6 +35,22 @@ export function StoriesWidget() {
 	useLayoutEffect(() => {
 		setSeenIds(loadSeenIds());
 		setSeenStorageLoaded(true);
+	}, []);
+
+	useEffect(() => {
+		const onSeenStorageChanged = () => {
+			setSeenIds(loadSeenIds());
+		};
+		window.addEventListener(
+			STORIES_SEEN_IDS_CHANGED_EVENT,
+			onSeenStorageChanged,
+		);
+		return () => {
+			window.removeEventListener(
+				STORIES_SEEN_IDS_CHANGED_EVENT,
+				onSeenStorageChanged,
+			);
+		};
 	}, []);
 
 	useEffect(() => {
