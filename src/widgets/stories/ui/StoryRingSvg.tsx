@@ -1,13 +1,11 @@
 'use client';
 
+import { useTheme } from 'styled-components';
+
 const CX = 50;
 const CY = 50;
 const R = 46;
 const STROKE = 3.2;
-
-const STROKE_SEEN = '#5c6e6d';
-const GRAD_TOP = '#4ade80';
-const GRAD_BOTTOM = '#3b9cf6';
 
 /** Промежуток между сегментами (°). У `round` торцы перекрывают щель; у `butt` зазор виден. */
 const GAP_DEG = 8;
@@ -27,6 +25,7 @@ export function StoryRingSvg({
 	seenStorageLoaded,
 }: StoryRingSvgProps) {
 	const n = seenByIndex.length;
+	const theme = useTheme();
 
 	if (n === 0) {
 		return null;
@@ -58,8 +57,11 @@ export function StoryRingSvg({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="rotate(90 50 50)"
 					>
-						<stop offset="0%" stopColor={GRAD_TOP} />
-						<stop offset="100%" stopColor={GRAD_BOTTOM} />
+						<stop offset="0%" stopColor={theme.colors.primary} />
+						<stop
+							offset="100%"
+							stopColor={theme.colors.secondary}
+						/>
 					</linearGradient>
 				</defs>
 			) : null}
@@ -73,7 +75,7 @@ export function StoryRingSvg({
 					fill="none"
 					stroke={
 						!seenStorageLoaded || seen
-							? STROKE_SEEN
+							? theme.colors.seen
 							: `url(#${GRADIENT_ID})`
 					}
 					strokeWidth={STROKE}

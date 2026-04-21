@@ -4,7 +4,9 @@ interface Colors {
 	primary: string;
 	success: string;
 	danger: string;
+	secondary: string;
 	dark: string;
+	seen: string;
 	gray: {
 		$1: string;
 		$2: string;

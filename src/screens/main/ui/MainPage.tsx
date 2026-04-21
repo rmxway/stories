@@ -47,12 +47,16 @@ export function MainPage() {
 			</Lead>
 			<StoriesWidget />
 			<br />
+			<br />
 			<Button
-				$variant="danger"
+				$icon="trash"
+				$iconPosition="right"
+				$size="large"
+				$variant="primary"
 				onClick={() => clearSeenIds()}
 				disabled={!hasSeenEntries}
 			>
-				Очистить просмотренные
+				Очистить
 			</Button>
 		</Root>
 	);

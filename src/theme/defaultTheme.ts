@@ -3,10 +3,12 @@ import { DefaultTheme } from 'styled-components';
 const defaultTheme: DefaultTheme = {
 	name: 'default',
 	colors: {
-		primary: '#fdd01a',
+		primary: '#4ade80',
 		success: '#76bd32',
 		danger: '#f4435e',
+		secondary: '#3b9cf6',
 		dark: '#222',
+		seen: '#5c6e6d',
 		gray: {
 			$1: '#ddd',
 			$2: '#ececec',

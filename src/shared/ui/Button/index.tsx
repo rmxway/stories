@@ -1,12 +1,14 @@
 import { forwardRef } from 'react';
 
+import { Icon } from '../Icon';
 import { ButtonProps, StyledButton } from './styled';
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-	({ children, ...props }, ref) => {
+	({ children, $icon, ...props }, ref) => {
 		return (
 			<StyledButton type="button" {...props} ref={ref}>
-				{children}
+				{$icon && <Icon icon={$icon} />}
+				<span>{children}</span>
 			</StyledButton>
 		);
 	},
