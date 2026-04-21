@@ -1,16 +1,13 @@
 'use client';
 
 import { type MotionValue } from 'framer-motion';
-import Image from 'next/image';
 
-import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import { Icon } from '@/shared/ui';
 
-import { STORY_AVATAR_SRC, StoryViewRecord } from '../constants';
+import { StoryViewRecord } from '../constants';
 import { formatStoryViewCount } from '../lib/formatStoryViewCount';
 import {
 	CloseButton,
-	ViewersListItemAvatar,
 	ViewersListItemInfo,
 	ViewersListItemWrap,
 	ViewersPanelContent,
@@ -19,6 +16,7 @@ import {
 	ViewersPanelList,
 	ViewersPanelTitle,
 } from './styled';
+import { ViewerAvatar } from './ViewerAvatar';
 
 type ViewersListPanelProps = {
 	viewers: ReadonlyArray<StoryViewRecord>;
@@ -85,30 +83,19 @@ export function ViewersListPanel({
 			</ViewersPanelHeader>
 			<ViewersPanelList $lockVerticalTouch={lockVerticalTouch}>
 				{hasViewers ? (
-					viewers.map((viewer) => {
-						const src = viewer.img || STORY_AVATAR_SRC;
-						const blur = getBlurDataURL(src);
-
-						return (
-							<ViewersListItemWrap key={viewer.id}>
-								<ViewersListItemAvatar>
-									<Image
-										src={src}
-										alt={viewer.name}
-										fill
-										sizes="30px"
-										placeholder="blur"
-										blurDataURL={blur}
-										style={{ objectFit: 'cover' }}
-									/>
-								</ViewersListItemAvatar>
-								<ViewersListItemInfo>
-									<strong>{viewer.name}</strong>
-									<span>{viewer.date}</span>
-								</ViewersListItemInfo>
-							</ViewersListItemWrap>
-						);
-					})
+					viewers.map((viewer) => (
+						<ViewersListItemWrap key={viewer.id}>
+							<ViewerAvatar
+								img={viewer.img}
+								name={viewer.name}
+								userId={viewer.id}
+							/>
+							<ViewersListItemInfo>
+								<strong>{viewer.name}</strong>
+								<span>{viewer.date}</span>
+							</ViewersListItemInfo>
+						</ViewersListItemWrap>
+					))
 				) : (
 					<ViewersPanelEmptyState>
 						Пока еще никто не видел эту историю

@@ -240,12 +240,15 @@ export function useStoryViewerInteractions({
 	const swipeUpStartValRef = useRef(0);
 
 	const closeViewersMode = useCallback(() => {
+		/* Как при жесте swipe-down-close: держим chromeInteractive, иначе панель/лента
+		 * получают opacity:0 сразу и анимация panelY не видна. */
+		setIsVerticalSwipeDownCloseActive(true);
 		/* Stage «story» до анимации: иначе до onComplete действует classic opacity и соседи
 		 * резко пропадают в последний кадр. */
 		setViewersStage('story');
-		setIsVerticalSwipeDownCloseActive(false);
 		void animateSwipeTo(0, () => {
 			setIsVerticalSwipeUpActive(false);
+			setIsVerticalSwipeDownCloseActive(false);
 		});
 	}, [animateSwipeTo]);
 

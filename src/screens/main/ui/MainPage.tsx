@@ -45,19 +45,19 @@ export function MainPage() {
 				<code>widgets/stories</code>, <code>shared</code>,{' '}
 				<code>theme</code>.
 			</Lead>
-			<StoriesWidget />
-			<br />
-			<br />
 			<Button
 				$icon="trash"
 				$iconPosition="right"
-				$size="large"
+				$size="medium"
 				$variant="primary"
 				onClick={() => clearSeenIds()}
 				disabled={!hasSeenEntries}
 			>
-				Очистить
+				Очистить просмотры
 			</Button>
+			<br />
+			<br />
+			<StoriesWidget />
 		</Root>
 	);
 }

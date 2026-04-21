@@ -13,7 +13,7 @@ export const STORIES = [
 			{
 				id: 'v1-2',
 				name: 'Сергей',
-				img: '/img/ava2.jpg',
+				img: '',
 				date: 'сегодня в 14:02',
 			},
 			{
@@ -25,20 +25,20 @@ export const STORIES = [
 			{
 				id: 'v1-4',
 				name: 'Мария',
-				img: '/img/ava.jpg',
-				date: 'сегодня в 15:44',
+				img: '',
+				date: 'вчера в 20:32',
 			},
 			{
 				id: 'v1-5',
 				name: 'Дмитрий',
-				img: '/img/ava2.jpg',
-				date: 'сегодня в 14:02',
+				img: '',
+				date: '04.04.2026 в 14:02',
 			},
 			{
 				id: 'v1-6',
 				name: 'Ольга',
-				img: '/img/ava3.jpg',
-				date: 'вчера в 21:33',
+				img: '',
+				date: '03.04.2026 в 21:33',
 			},
 		],
 	},
@@ -58,6 +58,12 @@ export const STORIES = [
 				name: 'Константин',
 				img: '/img/ava.jpg',
 				date: 'вчера в 09:15',
+			},
+			{
+				id: 'v2-3',
+				name: 'Анастасия',
+				img: '',
+				date: '02.04.2026 в 14:02',
 			},
 		],
 	},

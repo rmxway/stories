@@ -23,6 +23,9 @@ export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
 	display: flex;
 	justify-content: center;
+	z-index: 1000;
+	height: 72px;
+	width: 72px;
 `;
 
 export const PreviewButton = styled.button`
@@ -117,7 +120,7 @@ export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
 	display: flex;
 	flex-direction: column;
-	padding: 10px 0 clamp(35px, 5.5cqi, 45px);
+	padding: 10px 0 clamp(40px, 4cqi, 10vh);
 	container-type: inline-size;
 
 	user-select: none;
@@ -428,6 +431,7 @@ export const ViewersPreviewWrap = styled(motion.div)<{
 	${({ $interactive = true }) => css`
 		position: relative;
 		display: flex;
+		bottom: 6px;
 		align-items: center;
 		justify-content: flex-start;
 		height: clamp(40px, 8cqi, 60px);
@@ -446,18 +450,36 @@ export const ViewersPreviewAvatars = styled(motion.div)`
 `;
 
 export const ViewersPreviewAvatarWrap = styled(motion.div)`
-	width: clamp(22px, 7cqi, 32px);
-	height: clamp(22px, 7cqi, 32px);
+	position: relative;
+	width: clamp(22px, 10cqi, 34px);
+	height: clamp(22px, 10cqi, 34px);
 	border-radius: 50%;
 	overflow: hidden;
 	border: 2px solid #000;
 	margin-left: -10px;
-	position: relative;
 	background: #333;
 
 	img {
 		object-fit: cover;
 	}
+`;
+
+export const ViewerAvatarEmpty = styled.div<{
+	$gradient: string;
+}>`
+	${({ $gradient }) => css`
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font-weight: 600;
+		background: ${$gradient};
+		color: #fff;
+		font-size: clamp(14px, 3cqi, 20px);
+		text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+	`}
 `;
 
 export const ViewersPreviewCount = styled.div`
@@ -534,7 +556,6 @@ export const ViewersPanelTitle = styled.h3`
 export const ViewersPanelList = styled.div<{
 	$lockVerticalTouch?: boolean;
 }>`
-	flex: 1;
 	overflow-y: auto;
 	padding: 8px 0;
 	-webkit-overflow-scrolling: touch;
@@ -557,7 +578,7 @@ export const ViewersPanelEmptyState = styled.div`
 export const ViewersListItemWrap = styled.div`
 	display: flex;
 	align-items: center;
-	padding: 8px 16px;
+	padding: 6px 20px;
 	gap: 12px;
 	background: transparent;
 	transition: background 0.2s;
@@ -568,13 +589,17 @@ export const ViewersListItemWrap = styled.div`
 `;
 
 export const ViewersListItemAvatar = styled.div`
-	width: 30px;
-	height: 30px;
+	width: clamp(22px, 7cqi, 46px);
+	height: clamp(22px, 7cqi, 46px);
 	border-radius: 50%;
 	overflow: hidden;
 	position: relative;
 	background: #333;
 	flex-shrink: 0;
+
+	img {
+		object-fit: cover;
+	}
 `;
 
 export const ViewersListItemInfo = styled.div`
@@ -655,7 +680,7 @@ export const StoryThumbnailPreviewBackground = styled(motion.div)`
 	bottom: 0;
 	left: 0;
 	right: 0;
-	height: 100px;
+	height: 170px;
 	z-index: 20;
 	background: linear-gradient(
 		to top,

@@ -1,16 +1,13 @@
-/**
- * Константы анимации и геометрии жеста «режим зрителей» (Framer Motion + swipeUpDragY).
- */
-
+import { type ValueTransition } from 'motion-dom';
 /**
  * Единый transition для `animate(swipeUpDragY)` и shared layout (layoutId):
  * открытие/закрытие режима зрителей должно идти одной и той же кривой без резкого добегания.
  */
 export const VIEWERS_CHROME_OPEN_SPRING = {
-	type: 'tween' as const,
-	duration: 0.2,
-	ease: 'easeOut' as const,
-} as const;
+	type: 'tween',
+	duration: 0.25,
+	ease: 'easeInOut',
+} as const satisfies ValueTransition;
 
 /** Верхняя граница жеста (полностью поднятый список + рельс). */
 export const SWIPE_UP_DRAG_MAX_PX = -500;

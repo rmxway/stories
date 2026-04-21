@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+import { desaturate } from 'polished';
 import styled, { css } from 'styled-components';
 
 import type { Icofont } from '@/types';
@@ -10,23 +12,38 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 	$iconPosition?: 'left' | 'right';
 }
 
-export const StyledButton = styled.button<ButtonProps>`
-	${({ $variant, $size, $loading, $icon, $iconPosition, theme }) => css`
+export const StyledButton = styled(motion.button)<ButtonProps>`
+	${({ $variant, $size, $loading, $iconPosition, theme }) => css`
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		padding: ${theme.layout.basePadding};
+		color: #111;
+		text-transform: uppercase;
+		font-weight: 600;
+		font-size: clamp(12px, 1cqi, 16px);
+		line-height: 1;
 		border: none;
 		background: transparent;
 		cursor: pointer;
 		border-radius: ${theme.radius.borderRadius};
 		gap: 8px;
+		z-index: 1;
 
-		transition: all 0.2s ease-in-out;
+		&:hover {
+			opacity: 0.8;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		}
 
 		${$variant &&
 		css`
-			background: ${theme.colors[$variant]};
+			background-color: ${theme.colors[$variant]};
+
+			&:disabled {
+				opacity: 0.5;
+				background-color: ${desaturate(0.3, theme.colors[$variant])};
+				cursor: not-allowed;
+			}
 		`}
 
 		${$size === 'small' &&
@@ -44,22 +61,12 @@ export const StyledButton = styled.button<ButtonProps>`
 			padding: 24px;
 		`}
 
-        &[disabled] {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
-
 		${$loading &&
 		css`
 			opacity: 0.5;
 		`}
 
-		${$icon &&
-		css`
-			background: ${theme.colors.primary};
-		`}
-
-        ${$iconPosition === 'left' &&
+		${$iconPosition === 'left' &&
 		css`
 			margin-right: 8px;
 			flex-direction: row;

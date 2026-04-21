@@ -1,12 +1,10 @@
 'use client';
 
 import { motion, useTransform } from 'framer-motion';
-import Image from 'next/image';
 
-import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import { Icon } from '@/shared/ui';
 
-import { STORY_AVATAR_SRC, StoryItem } from '../constants';
+import { StoryItem } from '../constants';
 import { formatStoryViewCount } from '../lib/formatStoryViewCount';
 import {
 	SWIPE_UP_DRAG_MAX_PX,
@@ -18,10 +16,10 @@ import {
 } from './StoriesViewerContext';
 import {
 	ViewersPreviewAvatars,
-	ViewersPreviewAvatarWrap,
 	ViewersPreviewCount,
 	ViewersPreviewWrap,
 } from './styled';
+import { ViewerAvatar } from './ViewerAvatar';
 
 type StoryViewersPreviewProps = {
 	disabled?: boolean;
@@ -66,7 +64,11 @@ export function StoryViewersPreview({
 			scale: [1, 0, 0],
 			x: ['0%', '-50%', '-50%'],
 			left: ['0%', '50%', '50%'],
-			y: [0, -20, -20],
+			y: [
+				0,
+				-(window.innerHeight / 100) * 2,
+				-(window.innerHeight / 100) * 2,
+			],
 			gap: ['1cqi', '0px', '0px'],
 			xEye: [0, 40, 40],
 			scaleEye: [0, 1, 1],
@@ -97,29 +99,21 @@ export function StoryViewersPreview({
 			}}
 		>
 			<ViewersPreviewAvatars style={{ scale }}>
-				{topViewers.map((viewer, index) => {
-					const src = viewer.img || STORY_AVATAR_SRC;
-					const blur = getBlurDataURL(src);
-
-					return (
-						<ViewersPreviewAvatarWrap
-							key={viewer.id}
-							style={{
-								zIndex: topViewers.length - index,
-								opacity: fadeIn,
-							}}
-						>
-							<Image
-								src={src}
-								alt={viewer.name}
-								fill
-								sizes="32px"
-								placeholder="blur"
-								blurDataURL={blur}
-							/>
-						</ViewersPreviewAvatarWrap>
-					);
-				})}
+				{topViewers.map((viewer, index) => (
+					<motion.div
+						key={viewer.id}
+						style={{
+							zIndex: topViewers.length - index,
+							opacity: fadeIn,
+						}}
+					>
+						<ViewerAvatar
+							img={viewer.img}
+							name={viewer.name}
+							userId={viewer.id}
+						/>
+					</motion.div>
+				))}
 			</ViewersPreviewAvatars>
 
 			<ViewersPreviewCount>
