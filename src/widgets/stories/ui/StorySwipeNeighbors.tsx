@@ -72,21 +72,15 @@ export function StorySwipeNeighbors() {
 	}, [allowThumbClickRef, onPointerCancel]);
 
 	/** Как раньше для thumbnails / expanded: один множитель на все слайды. */
-	const swipeThumbOpacityClassic = useTransform(
-		swipeUpDragY,
-		[SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX, 0],
-		[0, 1, 1],
-	);
-
-	/**
-	 * Только для `viewersStage === 'story'`: соседи скрыты внизу, к миниатюрам раскрываются;
-	 * активный кадр доклеивается в `StoryThumbnailRailItem`.
-	 */
-	const swipeStoryNeighborOpacity = useTransform(
-		swipeUpDragY,
-		[SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX, 0],
-		[1, 1, 0],
-	);
+	const { swipeThumbOpacityClassic, swipeStoryNeighborOpacity } =
+		useTransform(
+			swipeUpDragY,
+			[SWIPE_UP_DRAG_MAX_PX + 30, SWIPE_UP_THUMBNAILS_PX, 0],
+			{
+				swipeThumbOpacityClassic: [0, 1, 1],
+				swipeStoryNeighborOpacity: [1, 1, 0],
+			},
+		);
 
 	const interactive =
 		isVerticalSwipeUpActive ||
