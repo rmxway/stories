@@ -14,6 +14,7 @@ import { ImageFadeVariant } from '@/shared/lib/framer-motion';
 
 import { type StoryItem } from '../constants';
 import { useStorySlidePhase } from '../lib/media';
+import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../lib/motion';
 import {
 	useStoriesActiveSlideMedia,
 	useStoriesViewerInteraction,
@@ -27,6 +28,7 @@ import {
 	StoryTapZone,
 	StoryThumbnailItemWrap,
 	StoryThumbnailPackedOffsetLayer,
+	StoryThumbnailPreviewBackground,
 	StoryThumbnailPreviewLayer,
 	StoryThumbnailScaleLayer,
 } from './styled';
@@ -94,6 +96,7 @@ export function StoryThumbnailRailItem({
 		viewersStage,
 		storyHeight,
 		storyScale,
+		swipeUpDragY,
 	} = useStoriesViewerInteraction();
 
 	/**
@@ -150,6 +153,12 @@ export function StoryThumbnailRailItem({
 			}
 			return Math.min(c, Number(storyN));
 		},
+	);
+
+	const previewBackgroundOpacity = useTransform(
+		swipeUpDragY,
+		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+		[0, 1, 1],
 	);
 
 	function onThumbWrapClick(e: MouseEvent<HTMLDivElement>): void {
@@ -224,6 +233,9 @@ export function StoryThumbnailRailItem({
 							/>
 						</>
 					)}
+					<StoryThumbnailPreviewBackground
+						style={{ opacity: previewBackgroundOpacity }}
+					/>
 				</StoryThumbnailItemWrap>
 			</StoryThumbnailScaleLayer>
 			<StoryThumbnailPreviewLayer
@@ -232,6 +244,7 @@ export function StoryThumbnailRailItem({
 				<StoryViewersPreview
 					disabled={!allowPointerEvents}
 					viewers={story.viewers}
+					storyIndex={index}
 				/>
 			</StoryThumbnailPreviewLayer>
 		</StoryThumbnailPackedOffsetLayer>

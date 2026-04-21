@@ -12,7 +12,10 @@ import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,
 } from '../lib/gestures/useStoryViewerInteractions';
-import { useStoriesViewerInteraction } from './StoriesViewerContext';
+import {
+	useStoriesViewerDomain,
+	useStoriesViewerInteraction,
+} from './StoriesViewerContext';
 import {
 	ViewersPreviewAvatars,
 	ViewersPreviewAvatarWrap,
@@ -23,35 +26,54 @@ import {
 type StoryViewersPreviewProps = {
 	disabled?: boolean;
 	viewers: StoryItem['viewers'];
+	storyIndex: number;
 };
 
 export function StoryViewersPreview({
 	disabled = false,
 	viewers = [],
+	storyIndex,
 }: StoryViewersPreviewProps) {
+	const { activeIndex } = useStoriesViewerDomain();
 	const { openViewersMode, swipeUpDragY } = useStoriesViewerInteraction();
 
 	const hasViewers = viewers.length > 0;
 	const topViewers = viewers.slice(0, 3);
 	const count = viewers.length;
 
-	const { fadeIn, fadeOut, scale, scaleEye, x, left, y, gap, widthEye } =
-		useTransform(
-			swipeUpDragY,
-			[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
-			{
-				fadeIn: [1, 0, 0],
-				fadeOut: [0, 1, 1],
-				scale: [1, 0, 0],
-				x: ['0%', '-50%', '-50%'],
-				left: ['0%', '50%', '50%'],
-				y: [0, -15, -15],
-				gap: ['1cqi', '0px', '0px'],
-				xEye: [0, 40, 40],
-				scaleEye: [0, 1, 1],
-				widthEye: [0, 20, 20],
-			},
-		);
+	/** Соседи не повторяют первый участок жеста (до thumbnails): эффективный ввод 0, пока `y` ближе к 0, чем порог. */
+	const previewSwipeInput = useTransform(swipeUpDragY, (val) => {
+		return storyIndex !== activeIndex ? SWIPE_UP_THUMBNAILS_PX : val;
+	});
+
+	const {
+		fadeIn,
+		fadeOut,
+		scale,
+		scaleEye,
+		scaleCount,
+		x,
+		left,
+		y,
+		gap,
+		widthEye,
+	} = useTransform(
+		previewSwipeInput,
+		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+		{
+			fadeIn: [1, 0, 0],
+			fadeOut: [0, 1, 1],
+			scale: [1, 0, 0],
+			x: ['0%', '-50%', '-50%'],
+			left: ['0%', '50%', '50%'],
+			y: [0, -20, -20],
+			gap: ['1cqi', '0px', '0px'],
+			xEye: [0, 40, 40],
+			scaleEye: [0, 1, 1],
+			scaleCount: [1, 1.2, 1.2],
+			widthEye: [0, 22, 22],
+		},
+	);
 
 	const IconMotion = motion.create(Icon);
 
@@ -112,8 +134,15 @@ export function StoryViewersPreview({
 								width: widthEye,
 							}}
 						/>
-						<span>{count}</span>
-						<motion.span style={{ opacity: fadeIn, scale }}>
+						<motion.div
+							style={{
+								scale: scaleCount,
+								transformOrigin: 'top',
+							}}
+						>
+							{count}
+						</motion.div>
+						<motion.span style={{ opacity: fadeIn }}>
 							{formatStoryViewCount(count)}
 						</motion.span>
 					</>

@@ -210,7 +210,7 @@ export const StoryInfo = styled.div`
 	left: 0;
 	right: 0;
 	height: 20%;
-	font-size: clamp(10px, 2.55cqi, 16px);
+	font-size: clamp(10px, 3cqi, 18px);
 	padding: clamp(10px, 2cqi, 12px) clamp(4px, 2cqi, 10px);
 	z-index: 10;
 	pointer-events: none;
@@ -235,12 +235,12 @@ export const StoryInfo = styled.div`
 	}
 
 	strong {
-		font-size: clamp(10px, 2.55cqi, 16px);
+		font-size: clamp(10px, 3cqi, 20px);
 		font-weight: 600;
 	}
 
 	span {
-		font-size: clamp(8px, 2.2cqi, 14px);
+		font-size: clamp(8px, 2.5cqi, 16px);
 		line-height: 1;
 		white-space: nowrap;
 		text-overflow: ellipsis;
@@ -431,6 +431,7 @@ export const ViewersPreviewWrap = styled(motion.div)<{
 		align-items: center;
 		justify-content: flex-start;
 		height: clamp(40px, 8cqi, 60px);
+		transform-origin: top center;
 		z-index: 200;
 		pointer-events: ${$interactive ? 'auto' : 'none'};
 		cursor: ${$interactive ? 'pointer' : 'default'};
@@ -461,8 +462,7 @@ export const ViewersPreviewAvatarWrap = styled(motion.div)`
 
 export const ViewersPreviewCount = styled.div`
 	color: #fff;
-	font-size: clamp(10px, 2.55cqi, 16px);
-	line-height: 1;
+	font-size: clamp(10px, 3cqi, 16px);
 	font-weight: 500;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	display: flex;
@@ -648,6 +648,25 @@ export const StoryThumbnailItemWrap = styled(motion.div)`
 		-webkit-touch-callout: none;
 		pointer-events: none;
 	}
+`;
+
+export const StoryThumbnailPreviewBackground = styled(motion.div)`
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 100px;
+	z-index: 20;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.8) 5%,
+		rgba(0, 0, 0, 0.7) 20%,
+		transparent 100%
+	);
+	pointer-events: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
 `;
 
 export const StoryThumbnailPreviewLayer = styled(motion.div)`
