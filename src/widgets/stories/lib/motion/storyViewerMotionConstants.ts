@@ -5,7 +5,7 @@ import { type ValueTransition } from 'motion-dom';
  */
 export const VIEWERS_CHROME_OPEN_SPRING = {
 	type: 'tween',
-	duration: 0.25,
+	duration: 0.22,
 	ease: 'easeInOut',
 } as const satisfies ValueTransition;
 
@@ -22,7 +22,3 @@ export const SWIPE_UP_THUMBNAILS_PX = SWIPE_UP_DRAG_MAX_PX / 2;
  * Доля высоты viewport для подъёма рельса миниатюр при expanded (параллельно росту панели).
  */
 export const VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO = 0.5;
-
-export const STORIES_SLIDER_LAYOUT_TRANSITION = {
-	layout: VIEWERS_CHROME_OPEN_SPRING,
-} as const;

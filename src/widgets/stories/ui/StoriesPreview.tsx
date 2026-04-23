@@ -52,7 +52,7 @@ export const StoriesPreview = forwardRef<
 				aria-label="Открыть сторисы"
 				onClick={onOpen}
 				whileTap={{ scale: 0.96 }}
-				transition={{ type: 'tween', duration: 0.15 }}
+				transition={{ type: 'tween', duration: 0.2 }}
 			>
 				<StoryRingFrame>
 					<StoryRingSvgWrap>

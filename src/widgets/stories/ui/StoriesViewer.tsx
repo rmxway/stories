@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
-import { getBlurDataURL } from '@/lib/getBlurDataURL';
 import {
 	FadeInOutVariant,
 	storyChromeVariants,
@@ -15,7 +14,6 @@ import {
 	STORY_AVATAR_SRC,
 	type StoryItem,
 } from '../constants';
-import { useProgressiveAvatarPhase } from '../lib/media';
 import { StoriesProgress } from './StoriesProgress';
 import {
 	StoriesViewerProvider,
@@ -28,13 +26,12 @@ import {
 	CloseButton,
 	Overlay,
 	OverlayBackdrop,
-	StoryAvatarImage,
 	StoryImageWrap,
 	StoryInfo,
-	StoryInfoAvatarWrap,
 	StoryShell,
 	VisuallyHidden,
 } from './styled';
+import { ViewerAvatar } from './ViewerAvatar';
 
 const MotionOverlay = motion.create(Overlay);
 const MotionOverlayBackdrop = motion.create(OverlayBackdrop);
@@ -124,13 +121,6 @@ function StoriesViewerInner() {
 	const [isStoryInfoVisible, setIsStoryInfoVisible] = useState(true);
 	const isStoryInfoVisibleRef = useRef(isStoryInfoVisible);
 	isStoryInfoVisibleRef.current = isStoryInfoVisible;
-
-	const {
-		onLoad: onLoadAvatar,
-		onError: onErrorAvatar,
-		imgRef: avatarImgRef,
-	} = useProgressiveAvatarPhase(STORY_AVATAR_SRC);
-	const avatarBlur = getBlurDataURL(STORY_AVATAR_SRC);
 
 	const progressPaused =
 		holdPaused ||
@@ -226,19 +216,13 @@ function StoriesViewerInner() {
 
 						<StoryInfo>
 							<Flexbox $gap={10} $align="center" $nowrap>
-								<StoryInfoAvatarWrap>
-									<StoryAvatarImage
-										ref={avatarImgRef}
-										src={STORY_AVATAR_SRC}
-										alt=""
-										fill
-										sizes="48px"
-										placeholder="blur"
-										blurDataURL={avatarBlur}
-										onLoad={onLoadAvatar}
-										onError={onErrorAvatar}
-									/>
-								</StoryInfoAvatarWrap>
+								<ViewerAvatar
+									userId={story.id}
+									name="Евгений"
+									img={STORY_AVATAR_SRC}
+									sizes="40px"
+									isAvatar
+								/>
 								<Flexbox $direction="column" $gap={2}>
 									<span>
 										<strong>Ваша история</strong> &bull;{' '}

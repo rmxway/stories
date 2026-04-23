@@ -89,6 +89,7 @@ export function ViewersListPanel({
 								img={viewer.img}
 								name={viewer.name}
 								userId={viewer.id}
+								isAvatar
 							/>
 							<ViewersListItemInfo>
 								<strong>{viewer.name}</strong>

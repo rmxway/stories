@@ -17,6 +17,7 @@ export type ViewerAvatarProps = {
 	name: string;
 	img?: string | null;
 	sizes?: string;
+	isAvatar?: boolean;
 };
 
 export function ViewerAvatar({
@@ -24,6 +25,7 @@ export function ViewerAvatar({
 	name,
 	img,
 	sizes = '30px',
+	isAvatar = false,
 }: ViewerAvatarProps) {
 	const src = img?.trim();
 	const hasImage = Boolean(src);
@@ -31,7 +33,7 @@ export function ViewerAvatar({
 	if (hasImage) {
 		const blur = getBlurDataURL(src!);
 		return (
-			<ViewersPreviewAvatarWrap>
+			<ViewersPreviewAvatarWrap $isAvatar={isAvatar}>
 				<Image
 					src={src!}
 					alt={name}
@@ -45,7 +47,7 @@ export function ViewerAvatar({
 	}
 
 	return (
-		<ViewersPreviewAvatarWrap>
+		<ViewersPreviewAvatarWrap $isAvatar={isAvatar}>
 			<ViewerAvatarEmpty $gradient={getGradientForUserId(userId)}>
 				{initialsFromName(name)}
 			</ViewerAvatarEmpty>

@@ -58,13 +58,10 @@ export function useStoryViewerSnapMotion({
 
 	const animateDismissTo = useCallback(
 		(target: number, onComplete?: () => void) => {
-			const config = {
-				type: 'tween' as const,
-				duration: 0.2,
-				ease: 'easeOut' as const,
-			};
-
-			return animate(dismissDragY, target, { ...config, onComplete });
+			return animate(dismissDragY, target, {
+				...VIEWERS_CHROME_OPEN_SPRING,
+				onComplete,
+			});
 		},
 		[dismissDragY],
 	);
@@ -87,12 +84,8 @@ export function useStoryViewerSnapMotion({
 				velocityY > DISMISS_CLOSE_VELOCITY_PX_S;
 
 			if (shouldClose) {
-				const exitY =
-					typeof window !== 'undefined'
-						? window.innerHeight + 80
-						: y + 400;
 				suppressTapClickRef.current = true;
-				void animateDismissTo(exitY, onClose);
+				void animateDismissTo(y + velocityY / 5, onClose);
 			} else {
 				void animateDismissTo(0);
 			}

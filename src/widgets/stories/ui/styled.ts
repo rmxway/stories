@@ -120,7 +120,7 @@ export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
 	display: flex;
 	flex-direction: column;
-	padding: 10px 0 clamp(40px, 4cqi, 10vh);
+	padding: 10px 0 clamp(50px, 4cqi, 10vh);
 	container-type: inline-size;
 
 	user-select: none;
@@ -214,7 +214,7 @@ export const StoryInfo = styled.div`
 	right: 0;
 	height: 20%;
 	font-size: clamp(10px, 3cqi, 18px);
-	padding: clamp(10px, 2cqi, 12px) clamp(4px, 2cqi, 10px);
+	padding: clamp(12px, 2cqi, 14px) clamp(4px, 2cqi, 10px);
 	z-index: 10;
 	pointer-events: none;
 
@@ -238,22 +238,13 @@ export const StoryInfo = styled.div`
 	}
 
 	strong {
-		font-size: clamp(10px, 3cqi, 20px);
+		font-size: clamp(14px, 3cqi, 20px);
 		font-weight: 600;
 	}
 
 	span {
-		font-size: clamp(8px, 2.5cqi, 16px);
+		font-size: clamp(14px, 2.5cqi, 20px);
 		line-height: 1;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		overflow: hidden;
-	}
-
-	time {
-		font-size: clamp(8px, 2.2cqi, 14px);
-		font-weight: 500;
-		line-height: 1.2;
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: hidden;
@@ -449,14 +440,19 @@ export const ViewersPreviewAvatars = styled(motion.div)`
 	align-items: center;
 `;
 
-export const ViewersPreviewAvatarWrap = styled(motion.div)`
+export const ViewersPreviewAvatarWrap = styled(motion.div)<{$isAvatar?: boolean}>`
 	position: relative;
-	width: clamp(22px, 10cqi, 34px);
-	height: clamp(22px, 10cqi, 34px);
+	width: clamp(14px, 10cqi, 34px);
+	height: clamp(14px, 10cqi, 34px);
 	border-radius: 50%;
 	overflow: hidden;
-	border: 2px solid #000;
-	margin-left: -10px;
+
+	${({ $isAvatar }) => !$isAvatar && css`
+		border: 2px solid #222;
+		margin-left: -10px;
+	`}
+
+	
 	background: #333;
 
 	img {
@@ -484,7 +480,7 @@ export const ViewerAvatarEmpty = styled.div<{
 
 export const ViewersPreviewCount = styled.div`
 	color: #fff;
-	font-size: clamp(10px, 3cqi, 16px);
+	font-size: clamp(14px, 3cqi, 18px);
 	font-weight: 500;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	display: flex;
@@ -540,7 +536,7 @@ export const ViewersPanelHeader = styled.div`
 export const ViewersPanelTitle = styled.h3`
 	position: relative;
 	color: #fff;
-	font-size: clamp(12px, 4cqi, 16px);
+	font-size: clamp(16px, 4cqi, 20px);
 	font-weight: 600;
 	margin: 0;
 	text-align: center;
@@ -571,34 +567,20 @@ export const ViewersPanelList = styled.div<{
 export const ViewersPanelEmptyState = styled.div`
 	padding: 16px;
 	color: rgba(255, 255, 255, 0.7);
-	font-size: 14px;
+	font-size: clamp(16px, 4cqi, 20px);
 	line-height: 1.4;
 `;
 
 export const ViewersListItemWrap = styled.div`
 	display: flex;
 	align-items: center;
-	padding: 6px 20px;
+	padding: 6px 12px;
 	gap: 12px;
 	background: transparent;
 	transition: background 0.2s;
 
 	&:active {
 		background: rgba(255, 255, 255, 0.05);
-	}
-`;
-
-export const ViewersListItemAvatar = styled.div`
-	width: clamp(22px, 7cqi, 46px);
-	height: clamp(22px, 7cqi, 46px);
-	border-radius: 50%;
-	overflow: hidden;
-	position: relative;
-	background: #333;
-	flex-shrink: 0;
-
-	img {
-		object-fit: cover;
 	}
 `;
 
@@ -610,7 +592,7 @@ export const ViewersListItemInfo = styled.div`
 	min-width: 0;
 
 	strong {
-		font-size: clamp(10px, 3cqi, 15px);
+		font-size: clamp(14px, 3cqi, 16px);
 		color: #fff;
 		font-weight: 500;
 		white-space: nowrap;
@@ -619,7 +601,7 @@ export const ViewersListItemInfo = styled.div`
 	}
 
 	span {
-		font-size: 13px;
+		font-size: clamp(14px, 3cqi, 16px);
 		color: rgba(255, 255, 255, 0.6);
 		white-space: nowrap;
 		overflow: hidden;

@@ -83,15 +83,13 @@ function ActiveStoryProgressFill({
 	return <MotionFill style={{ scaleX }} />;
 }
 
-type StoriesProgressOwnProps = {
+type StoriesProgressProps = {
 	count: number;
 	activeIndex: number;
 	segmentReplayToken: number;
 	holdPaused: boolean;
 	onSegmentComplete: (segmentIndex: number) => void;
 };
-
-export type StoriesProgressProps = StoriesProgressOwnProps;
 
 export const StoriesProgress = function StoriesProgress({
 	count,
