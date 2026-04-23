@@ -181,7 +181,7 @@ function StoriesViewerInner() {
 				$viewersChrome={isViewersMode}
 				layoutId={STORIES_SHELL_LAYOUT_ID}
 				style={{ y: dismissDragY, scale: shellScale }}
-				transition={{ type: 'tween', duration: 0.3 }}
+				transition={{ type: 'tween', duration: 0.2 }}
 				{...pointerProps}
 			>
 				<motion.div
