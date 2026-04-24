@@ -10,7 +10,10 @@ import {
 	useState,
 } from 'react';
 
-import type { ViewersStage } from '../../constants';
+import {
+	STORY_SHELL_HEIGHT_OVER_WIDTH,
+	type ViewersStage,
+} from '../../constants';
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,
@@ -80,6 +83,9 @@ export function useStoryViewerInteractions({
 	const [viewportHeight, setViewportHeight] = useState<number>(() =>
 		isWindowDefined ? window.innerHeight : 800,
 	);
+	const [viewportWidth, setViewportWidth] = useState<number>(() =>
+		isWindowDefined ? window.innerWidth : 400,
+	);
 
 	const [holdPaused, setHoldPaused] = useState(false);
 	const [isVerticalDismissActive, setIsVerticalDismissActive] =
@@ -107,6 +113,7 @@ export function useStoryViewerInteractions({
 
 		const onResize = () => {
 			setViewportHeight(window.innerHeight);
+			setViewportWidth(window.innerWidth);
 		};
 
 		onResize();
@@ -144,7 +151,12 @@ export function useStoryViewerInteractions({
 			dimmerOpacity: [OVERLAY_BASE_OPACITY, OVERLAY_DIMMEST_OPACITY],
 		},
 	);
-	const storyHeightPx = isWindowDefined ? viewportHeight : 800;
+	const storyHeightPx = isWindowDefined
+		? Math.min(
+				viewportHeight,
+				viewportWidth * STORY_SHELL_HEIGHT_OVER_WIDTH,
+			)
+		: 800;
 	const thumbnailsHeightPx = storyHeightPx * 0.5;
 	const panelCollapsedHeightPx = storyHeightPx * 0.5;
 

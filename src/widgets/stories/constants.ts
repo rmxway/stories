@@ -8,6 +8,9 @@ export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
 
 export type ViewersStage = 'story' | 'thumbnails' | 'expanded';
 
+/** Высота карточки сторис к её ширине (портретный кадр, как 9:16 ≈ 1:1.8). */
+export const STORY_SHELL_HEIGHT_OVER_WIDTH = 1.8;
+
 export const STORY_DURATION_SEC = 5;
 export const STORY_INFO_HIDE_DELAY_MS = 300;
 

@@ -6,6 +6,8 @@ import styled, { css, keyframes } from 'styled-components';
 
 import { StyledIcon } from '@/shared/ui/Icon/styled';
 
+import { STORY_SHELL_HEIGHT_OVER_WIDTH } from '../constants';
+
 const storyShimmerSlide = keyframes`
 	0% {
 		transform: translateX(-100%);
@@ -15,8 +17,7 @@ const storyShimmerSlide = keyframes`
 	}
 `;
 
-const STORY_CARD_ASPECT_RATIO_H_OVER_W = 1.8;
-const STORY_CARD_ASPECT_RATIO = `1/${STORY_CARD_ASPECT_RATIO_H_OVER_W}`;
+const STORY_CARD_ASPECT_RATIO = `1/${STORY_SHELL_HEIGHT_OVER_WIDTH}`;
 const STORY_CARD_MIN_WIDTH = '120px';
 
 export const PreviewWrap = styled.div`
@@ -113,7 +114,9 @@ export const OverlayBackdrop = styled.div`
 export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	position: relative;
 	z-index: 1;
-	height: 100%;
+	box-sizing: border-box;
+	width: min(100%, 100dvh / ${STORY_SHELL_HEIGHT_OVER_WIDTH});
+	height: auto;
 	max-height: 100dvh;
 	max-width: 100%;
 	min-width: ${STORY_CARD_MIN_WIDTH};
@@ -440,19 +443,22 @@ export const ViewersPreviewAvatars = styled(motion.div)`
 	align-items: center;
 `;
 
-export const ViewersPreviewAvatarWrap = styled(motion.div)<{$isAvatar?: boolean}>`
+export const ViewersPreviewAvatarWrap = styled(motion.div)<{
+	$isAvatar?: boolean;
+}>`
 	position: relative;
 	width: clamp(14px, 10cqi, 34px);
 	height: clamp(14px, 10cqi, 34px);
 	border-radius: 50%;
 	overflow: hidden;
 
-	${({ $isAvatar }) => !$isAvatar && css`
-		border: 2px solid #222;
-		margin-left: -10px;
-	`}
+	${({ $isAvatar }) =>
+		!$isAvatar &&
+		css`
+			border: 2px solid #222;
+			margin-left: -10px;
+		`}
 
-	
 	background: #333;
 
 	img {
