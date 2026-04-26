@@ -6,8 +6,12 @@ import { useCallback, useMemo } from 'react';
 import {
 	useStoriesThumbnailsSlider,
 	useViewersThumbnailStripInteraction,
-} from '../../lib/gestures';
-import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../../lib/motion';
+} from '@/widgets/stories/lib/gestures';
+import {
+	SWIPE_UP_DRAG_MAX_PX,
+	SWIPE_UP_THUMBNAILS_PX,
+} from '@/widgets/stories/lib/motion';
+
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,

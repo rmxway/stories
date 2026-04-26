@@ -3,7 +3,8 @@
 import { animate, type MotionValue } from 'framer-motion';
 import { type RefObject, useCallback } from 'react';
 
-import type { ViewersStage } from '../../constants';
+import type { ViewersStage } from '@/widgets/stories/constants';
+
 import {
 	DISMISS_CLOSE_DISTANCE_PX,
 	DISMISS_CLOSE_VELOCITY_PX_S,

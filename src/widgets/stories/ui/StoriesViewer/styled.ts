@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import styled, { css } from 'styled-components';
 
-import { STORY_SHELL_HEIGHT_OVER_WIDTH } from '../../constants';
+import { STORY_SHELL_HEIGHT_OVER_WIDTH } from '@/widgets/stories/constants';
 
 const STORY_CARD_ASPECT_RATIO = `1/${STORY_SHELL_HEIGHT_OVER_WIDTH}`;
 const STORY_CARD_MIN_WIDTH = '120px';

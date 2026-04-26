@@ -13,7 +13,8 @@ import {
 import {
 	STORY_SHELL_HEIGHT_OVER_WIDTH,
 	type ViewersStage,
-} from '../../constants';
+} from '@/widgets/stories/constants';
+
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,

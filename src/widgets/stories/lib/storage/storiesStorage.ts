@@ -1,7 +1,7 @@
 import {
 	STORIES_SEEN_IDS_CHANGED_EVENT,
 	STORIES_STORAGE_KEY,
-} from '../../constants';
+} from '@/widgets/stories/constants';
 
 export function loadSeenIds(): string[] {
 	if (typeof window === 'undefined') {

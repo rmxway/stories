@@ -3,7 +3,8 @@
 import { animate, motion, useMotionValue } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
-import { STORY_DURATION_SEC } from '../../constants';
+import { STORY_DURATION_SEC } from '@/widgets/stories/constants';
+
 import { useStoriesViewerSession } from '../StoriesViewerContext';
 import {
 	ProgressFill,

@@ -3,13 +3,13 @@
 import { motion, useTransform } from 'framer-motion';
 
 import { Icon } from '@/shared/ui';
-
-import { StoryItem } from '../../constants';
-import { formatStoryViewCount } from '../../lib/formatStoryViewCount';
+import { StoryItem } from '@/widgets/stories/constants';
+import { formatStoryViewCount } from '@/widgets/stories/lib/formatStoryViewCount';
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,
-} from '../../lib/gestures/useStoryViewerInteractions';
+} from '@/widgets/stories/lib/gestures/useStoryViewerInteractions';
+
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,

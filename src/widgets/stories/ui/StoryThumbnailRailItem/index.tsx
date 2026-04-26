@@ -3,9 +3,9 @@
 import { type MotionValue } from 'framer-motion';
 
 import { ImageFadeVariant } from '@/shared/lib/framer-motion';
+import { type StoryItem } from '@/widgets/stories/constants';
+import { useStoryThumbnailRailItemState } from '@/widgets/stories/lib/storyThumbnailRail';
 
-import { type StoryItem } from '../../constants';
-import { useStoryThumbnailRailItemState } from '../../lib/storyThumbnailRail';
 import { StoryThumbnailRailItemTapZones } from '../StoryThumbnailRailItemTapZones';
 import { StoryViewersPreview } from '../StoryViewersPreview';
 import {

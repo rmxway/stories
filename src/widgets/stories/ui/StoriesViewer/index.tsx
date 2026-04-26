@@ -8,12 +8,12 @@ import {
 	storyChromeVariants,
 } from '@/shared/lib/framer-motion';
 import { Flexbox, Icon, Space } from '@/shared/ui';
-
 import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
 	type StoryItem,
-} from '../../constants';
+} from '@/widgets/stories/constants';
+
 import { CloseButton } from '../shared/styled';
 import { StoriesProgress } from '../StoriesProgress';
 import {

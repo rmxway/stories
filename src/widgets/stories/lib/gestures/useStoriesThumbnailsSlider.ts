@@ -12,7 +12,7 @@ import {
 import {
 	STORY_THUMBNAIL_TRACK_GAP_PX,
 	type ViewersStage,
-} from '../../constants';
+} from '@/widgets/stories/constants';
 
 const STORIES_THUMB_ASPECT_H_OVER_W = 1.8;
 

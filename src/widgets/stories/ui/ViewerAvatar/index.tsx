@@ -1,8 +1,8 @@
 import Image from 'next/image';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
+import { getGradientForUserId } from '@/widgets/stories/lib/selectGradient';
 
-import { getGradientForUserId } from '../../lib/selectGradient';
 import { ViewerAvatarEmpty, ViewersPreviewAvatarWrap } from './styled';
 
 function initialsFromName(name?: string) {

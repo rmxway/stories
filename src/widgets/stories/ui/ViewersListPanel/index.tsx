@@ -3,9 +3,9 @@
 import { type MotionValue } from 'framer-motion';
 
 import { Icon } from '@/shared/ui';
+import { StoryViewRecord } from '@/widgets/stories/constants';
+import { formatStoryViewCount } from '@/widgets/stories/lib/formatStoryViewCount';
 
-import { StoryViewRecord } from '../../constants';
-import { formatStoryViewCount } from '../../lib/formatStoryViewCount';
 import { CloseButton } from '../shared/styled';
 import { ViewerAvatar } from '../ViewerAvatar';
 import {

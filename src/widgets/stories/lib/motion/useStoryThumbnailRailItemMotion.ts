@@ -2,7 +2,8 @@
 
 import { type MotionValue, useMotionValue, useTransform } from 'framer-motion';
 
-import { STORY_THUMBNAIL_TRACK_GAP_PX } from '../../constants';
+import { STORY_THUMBNAIL_TRACK_GAP_PX } from '@/widgets/stories/constants';
+
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,

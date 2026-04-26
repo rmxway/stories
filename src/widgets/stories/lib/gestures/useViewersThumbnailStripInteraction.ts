@@ -4,7 +4,8 @@ import type { PanInfo } from 'framer-motion';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { ViewersStage } from '../../constants';
+import type { ViewersStage } from '@/widgets/stories/constants';
+
 import {
 	GESTURE_AXIS_LOCK_PX,
 	STRIP_AXIS_LOCK_MIN_PX,

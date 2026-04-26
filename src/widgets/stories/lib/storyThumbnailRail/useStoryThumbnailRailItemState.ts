@@ -11,16 +11,16 @@ import {
 } from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
-
 import {
 	STORY_COVER_PINCH_MAX,
 	STORY_RAIL_IMAGE_SIZES,
 	type StoryItem,
-} from '../../constants';
+} from '@/widgets/stories/constants';
 import {
 	useStoriesViewerInteraction,
 	useStoriesViewerSession,
-} from '../../ui/StoriesViewerContext';
+} from '@/widgets/stories/ui/StoriesViewerContext';
+
 import { useStoryCoverPinch } from '../gestures';
 import { useStorySlidePhase } from '../media';
 import { useStoryThumbnailRailItemMotion } from '../motion';

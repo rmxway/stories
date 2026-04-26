@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
-
 import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
 	type StoryItem,
-} from '../../constants';
-import { useProgressiveAvatarPhase } from '../../lib/media';
+} from '@/widgets/stories/constants';
+import { useProgressiveAvatarPhase } from '@/widgets/stories/lib/media';
+
 import { StoryRingSvg } from '../StoryRingSvg';
 import {
 	PreviewButton,
