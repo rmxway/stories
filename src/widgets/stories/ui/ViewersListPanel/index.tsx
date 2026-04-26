@@ -4,10 +4,11 @@ import { type MotionValue } from 'framer-motion';
 
 import { Icon } from '@/shared/ui';
 
-import { StoryViewRecord } from '../constants';
-import { formatStoryViewCount } from '../lib/formatStoryViewCount';
+import { StoryViewRecord } from '../../constants';
+import { formatStoryViewCount } from '../../lib/formatStoryViewCount';
+import { CloseButton } from '../shared/styled';
+import { ViewerAvatar } from '../ViewerAvatar';
 import {
-	CloseButton,
 	ViewersListItemInfo,
 	ViewersListItemWrap,
 	ViewersPanelContent,
@@ -16,7 +17,6 @@ import {
 	ViewersPanelList,
 	ViewersPanelTitle,
 } from './styled';
-import { ViewerAvatar } from './ViewerAvatar';
 
 type ViewersListPanelProps = {
 	viewers: ReadonlyArray<StoryViewRecord>;

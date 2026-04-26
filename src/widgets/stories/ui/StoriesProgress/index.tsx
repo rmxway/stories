@@ -3,8 +3,8 @@
 import { animate, motion, useMotionValue } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
-import { STORY_DURATION_SEC } from '../constants';
-import { useStoriesViewerSession } from './StoriesViewerContext';
+import { STORY_DURATION_SEC } from '../../constants';
+import { useStoriesViewerSession } from '../StoriesViewerContext';
 import {
 	ProgressFill,
 	ProgressFillComplete,

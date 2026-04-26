@@ -13,18 +13,19 @@ import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
 	type StoryItem,
-} from '../constants';
-import { StoriesProgress } from './StoriesProgress';
+} from '../../constants';
+import { CloseButton } from '../shared/styled';
+import { StoriesProgress } from '../StoriesProgress';
 import {
 	StoriesViewerProvider,
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
 	useStoriesViewerSession,
-} from './StoriesViewerContext';
-import { StoriesViewersMode } from './StoriesViewersMode';
-import { StorySwipeNeighbors } from './StorySwipeNeighbors';
+} from '../StoriesViewerContext';
+import { StoriesViewersMode } from '../StoriesViewersMode';
+import { StorySwipeNeighbors } from '../StorySwipeNeighbors';
+import { ViewerAvatar } from '../ViewerAvatar';
 import {
-	CloseButton,
 	Overlay,
 	OverlayBackdrop,
 	StoryImageWrap,
@@ -32,7 +33,6 @@ import {
 	StoryShell,
 	VisuallyHidden,
 } from './styled';
-import { ViewerAvatar } from './ViewerAvatar';
 
 const MotionOverlay = motion.create(Overlay);
 const MotionOverlayBackdrop = motion.create(OverlayBackdrop);

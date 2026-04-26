@@ -9,9 +9,9 @@ import {
 	STORIES_SHELL_LAYOUT_ID,
 	STORY_AVATAR_SRC,
 	type StoryItem,
-} from '../constants';
-import { useProgressiveAvatarPhase } from '../lib/media';
-import { StoryRingSvg } from './StoryRingSvg';
+} from '../../constants';
+import { useProgressiveAvatarPhase } from '../../lib/media';
+import { StoryRingSvg } from '../StoryRingSvg';
 import {
 	PreviewButton,
 	PreviewWrap,

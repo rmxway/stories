@@ -3,9 +3,9 @@
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
-} from './StoriesViewerContext';
+} from '../StoriesViewerContext';
+import { ViewersListPanel } from '../ViewersListPanel';
 import { StoriesViewersModeRoot } from './styled';
-import { ViewersListPanel } from './ViewersListPanel';
 
 export function StoriesViewersMode() {
 	const { stories, activeIndex } = useStoriesViewerDomain();

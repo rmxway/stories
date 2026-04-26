@@ -6,14 +6,14 @@ import { useCallback, useMemo } from 'react';
 import {
 	useStoriesThumbnailsSlider,
 	useViewersThumbnailStripInteraction,
-} from '../lib/gestures';
-import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../lib/motion';
+} from '../../lib/gestures';
+import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../../lib/motion';
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
 	useStoriesViewerSession,
-} from './StoriesViewerContext';
-import { StoryThumbnailRailItem } from './StoryThumbnailRailItem';
+} from '../StoriesViewerContext';
+import { StoryThumbnailRailItem } from '../StoryThumbnailRailItem';
 import { StorySwipeSliderContent, StorySwipeSliderWrap } from './styled';
 
 export function StorySwipeNeighbors() {

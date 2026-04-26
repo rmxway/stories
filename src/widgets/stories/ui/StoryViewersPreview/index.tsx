@@ -4,22 +4,22 @@ import { motion, useTransform } from 'framer-motion';
 
 import { Icon } from '@/shared/ui';
 
-import { StoryItem } from '../constants';
-import { formatStoryViewCount } from '../lib/formatStoryViewCount';
+import { StoryItem } from '../../constants';
+import { formatStoryViewCount } from '../../lib/formatStoryViewCount';
 import {
 	SWIPE_UP_DRAG_MAX_PX,
 	SWIPE_UP_THUMBNAILS_PX,
-} from '../lib/gestures/useStoryViewerInteractions';
+} from '../../lib/gestures/useStoryViewerInteractions';
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
-} from './StoriesViewerContext';
+} from '../StoriesViewerContext';
+import { ViewerAvatar } from '../ViewerAvatar';
 import {
 	ViewersPreviewAvatars,
 	ViewersPreviewCount,
 	ViewersPreviewWrap,
 } from './styled';
-import { ViewerAvatar } from './ViewerAvatar';
 
 type StoryViewersPreviewProps = {
 	disabled?: boolean;
