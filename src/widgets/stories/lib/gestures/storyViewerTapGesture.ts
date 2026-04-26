@@ -13,3 +13,15 @@ export function runTapIfNotSuppressed(
 	}
 	action();
 }
+
+/** То же, что `runTapIfNotSuppressed`, без DOM-события (тап с оболочки pinch, не из `<button />`). */
+export function tryStoryTap(
+	suppressRef: RefObject<boolean>,
+	action: () => void,
+): void {
+	if (suppressRef.current) {
+		suppressRef.current = false;
+		return;
+	}
+	action();
+}

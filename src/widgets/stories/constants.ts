@@ -11,6 +11,17 @@ export type ViewersStage = 'story' | 'thumbnails' | 'expanded';
 /** Высота карточки сторис к её ширине (портретный кадр, как 9:16 ≈ 1:1.8). */
 export const STORY_SHELL_HEIGHT_OVER_WIDTH = 1.8;
 
+/**
+ * `sizes` для кадра в рельсе: `100%` у next/image недопустим и даёт узкий srcset → «крошечная» картинка.
+ */
+export const STORY_RAIL_IMAGE_SIZES = '100vw' as const;
+
+/** Gap между карточками в горизонтальном треке (совпадает с CSS `gap` рельса). */
+export const STORY_THUMBNAIL_TRACK_GAP_PX = 20;
+
+/** Верхняя граница pinch по кадру cover. */
+export const STORY_COVER_PINCH_MAX = 3;
+
 export const STORY_DURATION_SEC = 5;
 export const STORY_INFO_HIDE_DELAY_MS = 300;
 

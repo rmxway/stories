@@ -11,6 +11,7 @@ import { SWIPE_UP_DRAG_MAX_PX, SWIPE_UP_THUMBNAILS_PX } from '../lib/motion';
 import {
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
+	useStoriesViewerSession,
 } from './StoriesViewerContext';
 import { StoryThumbnailRailItem } from './StoryThumbnailRailItem';
 import { StorySwipeSliderContent, StorySwipeSliderWrap } from './styled';
@@ -28,6 +29,8 @@ export function StorySwipeNeighbors() {
 		collapseViewersToThumbnails,
 		thumbnailRailY,
 	} = useStoriesViewerInteraction();
+
+	const { railPinchActive } = useStoriesViewerSession();
 
 	const {
 		sliderX,
@@ -53,6 +56,7 @@ export function StorySwipeNeighbors() {
 		viewersStage,
 		onCloseToStory: closeViewersMode,
 		onCollapseToThumbnails: collapseViewersToThumbnails,
+		railPinchActive,
 	});
 
 	const dragStart = useMemo(

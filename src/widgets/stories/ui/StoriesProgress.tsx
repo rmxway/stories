@@ -4,7 +4,7 @@ import { animate, motion, useMotionValue } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
 import { STORY_DURATION_SEC } from '../constants';
-import { useStoriesActiveSlideMedia } from './StoriesViewerContext';
+import { useStoriesViewerSession } from './StoriesViewerContext';
 import {
 	ProgressFill,
 	ProgressFillComplete,
@@ -30,7 +30,7 @@ function ActiveStoryProgressFill({
 	const scaleX = useMotionValue(0);
 	const controlsRef = useRef<ReturnType<typeof animate> | null>(null);
 	const holdPausedRef = useRef(holdPaused);
-	const { activeSlideContentReady } = useStoriesActiveSlideMedia();
+	const { activeSlideContentReady } = useStoriesViewerSession();
 
 	holdPausedRef.current = holdPaused;
 

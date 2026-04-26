@@ -19,6 +19,7 @@ import {
 	StoriesViewerProvider,
 	useStoriesViewerDomain,
 	useStoriesViewerInteraction,
+	useStoriesViewerSession,
 } from './StoriesViewerContext';
 import { StoriesViewersMode } from './StoriesViewersMode';
 import { StorySwipeNeighbors } from './StorySwipeNeighbors';
@@ -116,6 +117,8 @@ function StoriesViewerInner() {
 		previewOpacity,
 		pointerProps,
 	} = useStoriesViewerInteraction();
+
+	const { railPinchActive } = useStoriesViewerSession();
 
 	const story = stories[activeIndex];
 	const [isStoryInfoVisible, setIsStoryInfoVisible] = useState(true);
@@ -246,7 +249,10 @@ function StoriesViewerInner() {
 					</motion.div>
 				</motion.div>
 
-				<StoryImageWrap $viewersMode={isViewersMode}>
+				<StoryImageWrap
+					$viewersMode={isViewersMode}
+					$railPinchActive={railPinchActive}
+				>
 					<StorySwipeNeighbors />
 				</StoryImageWrap>
 				<StoriesViewersMode key="stories-viewers-layer" />

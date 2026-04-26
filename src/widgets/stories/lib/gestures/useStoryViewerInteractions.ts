@@ -33,7 +33,7 @@ import {
 	VIEWERS_CHROME_SCALE_MIN,
 } from './storyViewerGestureConstants';
 import { isInsideViewersInteractiveTarget } from './storyViewerGestureDom';
-import { runTapIfNotSuppressed } from './storyViewerTapGesture';
+import { runTapIfNotSuppressed, tryStoryTap } from './storyViewerTapGesture';
 
 /** Реэкспорт для существующих импортов из хука. */
 export type { ViewersStage };
@@ -71,6 +71,8 @@ type UseStoryViewerInteractionsArgs = {
 	onClose: () => void;
 	onTapPrevious: () => void;
 	onTapNext: () => void;
+	/** Активен pinch по обложке в рельсе — гасим свайп вверх/вниз и dismiss. */
+	railPinchActive: boolean;
 };
 
 export function useStoryViewerInteractions({
@@ -78,6 +80,7 @@ export function useStoryViewerInteractions({
 	onClose,
 	onTapPrevious,
 	onTapNext,
+	railPinchActive,
 }: UseStoryViewerInteractionsArgs) {
 	const isWindowDefined = typeof window !== 'undefined';
 	const [viewportHeight, setViewportHeight] = useState<number>(() =>
@@ -246,6 +249,11 @@ export function useStoryViewerInteractions({
 	const startYRef = useRef(0);
 	const startXRef = useRef(0);
 	const activePointerIdRef = useRef<number | null>(null);
+	/** `setPointerCapture` при уходе в вертикальный жест (для сброса при rail pinch). */
+	const pointerCaptureInfoRef = useRef<{
+		el: HTMLDivElement;
+		id: number;
+	} | null>(null);
 	const lastMoveYRef = useRef(0);
 	const lastMoveTRef = useRef(0);
 	const velocityYRef = useRef(0);
@@ -294,6 +302,62 @@ export function useStoryViewerInteractions({
 		setHoldPaused(false);
 	}, []);
 
+	const applyShellVerticalCancel = useCallback(
+		(
+			cancelMode: GestureMode,
+			release: { el: HTMLDivElement; id: number } | null,
+		) => {
+			if (release) {
+				try {
+					release.el.releasePointerCapture(release.id);
+				} catch {
+					/* ignore */
+				}
+			} else if (pointerCaptureInfoRef.current) {
+				const c = pointerCaptureInfoRef.current;
+				try {
+					c.el.releasePointerCapture(c.id);
+				} catch {
+					/* ignore */
+				}
+			}
+			pointerCaptureInfoRef.current = null;
+
+			if (cancelMode === 'verticalDismiss') {
+				void animateDismissTo(0);
+			} else if (cancelMode === 'verticalSwipeUp') {
+				setViewersStage('story');
+				void animateSwipeTo(0);
+			} else if (cancelMode === 'verticalSwipeUpExpand') {
+				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX, () => {
+					setViewersStage('thumbnails');
+					setIsVerticalSwipeUpActive(false);
+				});
+			} else if (cancelMode === 'verticalSwipeDownCloseViewers') {
+				const restoreY = swipeUpStartValRef.current;
+				if (restoreY === 0) {
+					setViewersStage('story');
+				} else if (restoreY === SWIPE_UP_THUMBNAILS_PX) {
+					setViewersStage('thumbnails');
+				} else {
+					setViewersStage('expanded');
+				}
+				void animateSwipeTo(restoreY, () => {
+					setIsVerticalSwipeDownCloseActive(false);
+				});
+			}
+
+			modeRef.current = 'idle';
+			setIsVerticalDismissActive(false);
+			setIsVerticalSwipeUpActive(false);
+			if (cancelMode !== 'verticalSwipeDownCloseViewers') {
+				setIsVerticalSwipeDownCloseActive(false);
+			}
+			endHoldCancel();
+		},
+		[animateDismissTo, animateSwipeTo, endHoldCancel, setViewersStage],
+	);
+
 	const onShellPointerDown = useCallback(
 		(e: ReactPointerEvent<HTMLDivElement>) => {
 			const t = e.target;
@@ -328,6 +392,9 @@ export function useStoryViewerInteractions({
 			) {
 				return false;
 			}
+			if (railPinchActive) {
+				return false;
+			}
 			modeRef.current = 'pending';
 			startYRef.current = e.clientY;
 			startXRef.current = e.clientX;
@@ -341,7 +408,7 @@ export function useStoryViewerInteractions({
 			swipeUpStartValRef.current = swipeUpDragY.get();
 			return true;
 		},
-		[isViewersMode, swipeUpDragY],
+		[isViewersMode, railPinchActive, swipeUpDragY],
 	);
 
 	const onStoryMove = useCallback(
@@ -354,6 +421,12 @@ export function useStoryViewerInteractions({
 			}
 			const m = modeRef.current;
 			if (m === 'idle') {
+				return;
+			}
+			if (railPinchActive) {
+				if (m === 'pending') {
+					modeRef.current = 'idle';
+				}
 				return;
 			}
 			const dx = e.clientX - startXRef.current;
@@ -369,11 +442,19 @@ export function useStoryViewerInteractions({
 						modeRef.current = 'verticalSwipeDownCloseViewers';
 						setIsVerticalSwipeDownCloseActive(true);
 						e.currentTarget.setPointerCapture(e.pointerId);
+						pointerCaptureInfoRef.current = {
+							el: e.currentTarget,
+							id: e.pointerId,
+						};
 						suppressTapClickRef.current = true;
 					} else {
 						modeRef.current = 'verticalDismiss';
 						setIsVerticalDismissActive(true);
 						e.currentTarget.setPointerCapture(e.pointerId);
+						pointerCaptureInfoRef.current = {
+							el: e.currentTarget,
+							id: e.pointerId,
+						};
 						suppressTapClickRef.current = true;
 					}
 				} else if (
@@ -385,11 +466,19 @@ export function useStoryViewerInteractions({
 						modeRef.current = 'verticalSwipeUp';
 						setIsVerticalSwipeUpActive(true);
 						e.currentTarget.setPointerCapture(e.pointerId);
+						pointerCaptureInfoRef.current = {
+							el: e.currentTarget,
+							id: e.pointerId,
+						};
 						suppressTapClickRef.current = true;
 					} else if (viewersStageRef.current === 'thumbnails') {
 						modeRef.current = 'verticalSwipeUpExpand';
 						setIsVerticalSwipeUpActive(true);
 						e.currentTarget.setPointerCapture(e.pointerId);
+						pointerCaptureInfoRef.current = {
+							el: e.currentTarget,
+							id: e.pointerId,
+						};
 						suppressTapClickRef.current = true;
 					}
 				} else if (
@@ -444,6 +533,7 @@ export function useStoryViewerInteractions({
 			applyUpResistance,
 			dismissDragY,
 			isViewersMode,
+			railPinchActive,
 			swipeUpDragY,
 		],
 	);
@@ -470,6 +560,7 @@ export function useStoryViewerInteractions({
 				} catch {
 					/* ignore */
 				}
+				pointerCaptureInfoRef.current = null;
 				if (m === 'verticalDismiss') {
 					finishDismissOrSnap(velocityYRef.current);
 				} else if (m === 'verticalSwipeUp') {
@@ -511,61 +602,28 @@ export function useStoryViewerInteractions({
 			activePointerIdRef.current = null;
 
 			const cancelMode = modeRef.current;
-
-			if (cancelMode === 'verticalDismiss') {
-				try {
-					e.currentTarget.releasePointerCapture(e.pointerId);
-				} catch {
-					/* ignore */
-				}
-				void animateDismissTo(0);
-			} else if (cancelMode === 'verticalSwipeUp') {
-				try {
-					e.currentTarget.releasePointerCapture(e.pointerId);
-				} catch {
-					/* ignore */
-				}
-				setViewersStage('story');
-				void animateSwipeTo(0);
-			} else if (cancelMode === 'verticalSwipeUpExpand') {
-				try {
-					e.currentTarget.releasePointerCapture(e.pointerId);
-				} catch {
-					/* ignore */
-				}
-				void animateSwipeTo(SWIPE_UP_THUMBNAILS_PX, () => {
-					setViewersStage('thumbnails');
-					setIsVerticalSwipeUpActive(false);
-				});
-			} else if (cancelMode === 'verticalSwipeDownCloseViewers') {
-				try {
-					e.currentTarget.releasePointerCapture(e.pointerId);
-				} catch {
-					/* ignore */
-				}
-				const restoreY = swipeUpStartValRef.current;
-				if (restoreY === 0) {
-					setViewersStage('story');
-				} else if (restoreY === SWIPE_UP_THUMBNAILS_PX) {
-					setViewersStage('thumbnails');
-				} else {
-					setViewersStage('expanded');
-				}
-				void animateSwipeTo(restoreY, () => {
-					setIsVerticalSwipeDownCloseActive(false);
-				});
-			}
-
-			modeRef.current = 'idle';
-			setIsVerticalDismissActive(false);
-			setIsVerticalSwipeUpActive(false);
-			if (cancelMode !== 'verticalSwipeDownCloseViewers') {
-				setIsVerticalSwipeDownCloseActive(false);
-			}
-			endHoldCancel();
+			applyShellVerticalCancel(cancelMode, {
+				el: e.currentTarget,
+				id: e.pointerId,
+			});
 		},
-		[animateDismissTo, animateSwipeTo, endHoldCancel],
+		[applyShellVerticalCancel],
 	);
+
+	useEffect(() => {
+		if (!railPinchActive) {
+			return;
+		}
+		const cancelMode = modeRef.current;
+		if (cancelMode === 'idle' || cancelMode === 'pending') {
+			if (cancelMode === 'pending') {
+				modeRef.current = 'idle';
+			}
+			return;
+		}
+		activePointerIdRef.current = null;
+		applyShellVerticalCancel(cancelMode, null);
+	}, [applyShellVerticalCancel, railPinchActive]);
 
 	const onStoryDownCapture = useCallback(
 		(e: ReactPointerEvent<HTMLDivElement>) => {
@@ -588,6 +646,14 @@ export function useStoryViewerInteractions({
 			runTapIfNotSuppressed(e, suppressTapClickRef, onTapNext),
 		[onTapNext],
 	);
+
+	const onTapPreviousFromShell = useCallback(() => {
+		tryStoryTap(suppressTapClickRef, onTapPrevious);
+	}, [onTapPrevious]);
+
+	const onTapNextFromShell = useCallback(() => {
+		tryStoryTap(suppressTapClickRef, onTapNext);
+	}, [onTapNext]);
 
 	return {
 		dismissDragY,
@@ -626,6 +692,8 @@ export function useStoryViewerInteractions({
 		},
 		onTapPreviousGuarded,
 		onTapNextGuarded,
+		onTapPreviousFromShell,
+		onTapNextFromShell,
 
 		animateDismissTo,
 		animateSwipeTo,

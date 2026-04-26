@@ -24,6 +24,8 @@ export function StoriesWidget() {
 	const [seenIds, setSeenIds] = useState<string[]>([]);
 	const [seenStorageLoaded, setSeenStorageLoaded] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
+	/** Смена key при каждом открытии — чистый mount сторис (pinch/layout без «наследия» с прошлой сессии). */
+	const [viewerSessionKey, setViewerSessionKey] = useState(0);
 	const [activeIndex, setActiveIndex] = useState(0);
 	const [segmentReplayToken, setSegmentReplayToken] = useState(0);
 	const handleCloseRef = useRef<() => void>(() => undefined);
@@ -75,6 +77,7 @@ export function StoriesWidget() {
 
 	const handleOpen = useCallback(() => {
 		setActiveIndex(getInitialOpenIndex(STORIES, seenIds));
+		setViewerSessionKey((k) => k + 1);
 		setIsOpen(true);
 	}, [seenIds]);
 
@@ -193,7 +196,7 @@ export function StoriesWidget() {
 
 			{isOpen ? (
 				<StoriesViewer
-					key="stories-viewer"
+					key={viewerSessionKey}
 					stories={STORIES}
 					activeIndex={activeIndex}
 					segmentReplayToken={segmentReplayToken}

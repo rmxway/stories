@@ -5,6 +5,7 @@ import {
 	type PropsWithChildren,
 	useContext,
 	useLayoutEffect,
+	useMemo,
 	useState,
 } from 'react';
 
@@ -33,13 +34,16 @@ const StoriesViewerDomainContext =
 const StoriesViewerInteractionContext =
 	createContext<StoriesViewerInteractionValue | null>(null);
 
-type StoriesActiveSlideMediaValue = {
+/** Локальные флаги вьювера: готовность контента слайда и pinch по рельсу превью. */
+export type StoriesViewerSessionValue = {
 	activeSlideContentReady: boolean;
 	setActiveSlideContentReady: (value: boolean) => void;
+	railPinchActive: boolean;
+	setRailPinchActive: (active: boolean) => void;
 };
 
-const StoriesActiveSlideMediaContext =
-	createContext<StoriesActiveSlideMediaValue | null>(null);
+const StoriesViewerSessionContext =
+	createContext<StoriesViewerSessionValue | null>(null);
 
 export function useStoriesViewerDomain(): StoriesViewerDomainValue {
 	const value = useContext(StoriesViewerDomainContext);
@@ -61,11 +65,11 @@ export function useStoriesViewerInteraction(): StoriesViewerInteractionValue {
 	return value;
 }
 
-export function useStoriesActiveSlideMedia(): StoriesActiveSlideMediaValue {
-	const value = useContext(StoriesActiveSlideMediaContext);
+export function useStoriesViewerSession(): StoriesViewerSessionValue {
+	const value = useContext(StoriesViewerSessionContext);
 	if (!value) {
 		throw new Error(
-			'useStoriesActiveSlideMedia must be used within StoriesViewerProvider',
+			'useStoriesViewerSession must be used within StoriesViewerProvider',
 		);
 	}
 	return value;
@@ -77,11 +81,14 @@ export function StoriesViewerProvider({
 	children,
 	...domain
 }: StoriesViewerProviderProps) {
+	const [railPinchActive, setRailPinchActive] = useState(false);
+
 	const interaction = useStoryViewerInteractions({
 		activeIndex: domain.activeIndex,
 		onClose: domain.onClose,
 		onTapPrevious: domain.onTapPrevious,
 		onTapNext: domain.onTapNext,
+		railPinchActive,
 	});
 
 	const [activeSlideContentReady, setActiveSlideContentReady] =
@@ -92,19 +99,22 @@ export function StoriesViewerProvider({
 		setActiveSlideContentReady(false);
 	}, [domain.activeIndex]);
 
-	const activeSlideMedia: StoriesActiveSlideMediaValue = {
-		activeSlideContentReady,
-		setActiveSlideContentReady,
-	};
+	const session: StoriesViewerSessionValue = useMemo(
+		() => ({
+			activeSlideContentReady,
+			setActiveSlideContentReady,
+			railPinchActive,
+			setRailPinchActive,
+		}),
+		[activeSlideContentReady, railPinchActive],
+	);
 
 	return (
 		<StoriesViewerDomainContext.Provider value={domain}>
 			<StoriesViewerInteractionContext.Provider value={interaction}>
-				<StoriesActiveSlideMediaContext.Provider
-					value={activeSlideMedia}
-				>
+				<StoriesViewerSessionContext.Provider value={session}>
 					{children}
-				</StoriesActiveSlideMediaContext.Provider>
+				</StoriesViewerSessionContext.Provider>
 			</StoriesViewerInteractionContext.Provider>
 		</StoriesViewerDomainContext.Provider>
 	);

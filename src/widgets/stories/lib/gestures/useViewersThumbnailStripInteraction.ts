@@ -22,6 +22,8 @@ type UseViewersThumbnailStripInteractionArgs = {
 	viewersStage: ViewersStage;
 	onCloseToStory: () => void;
 	onCollapseToThumbnails: () => void;
+	/** Pinch по кадру в рельсе — не трактуем как свайп вниз для выхода. */
+	railPinchActive: boolean;
 };
 
 type StripPointerState = {
@@ -41,6 +43,7 @@ export function useViewersThumbnailStripInteraction({
 	viewersStage,
 	onCloseToStory,
 	onCollapseToThumbnails,
+	railPinchActive,
 }: UseViewersThumbnailStripInteractionArgs) {
 	const stripPtrRef = useRef<StripPointerState | null>(null);
 	const allowThumbClickRef = useRef(true);
@@ -72,6 +75,12 @@ export function useViewersThumbnailStripInteraction({
 		};
 	}, [clearAllowThumbClickTimeout]);
 
+	useEffect(() => {
+		if (railPinchActive) {
+			stripPtrRef.current = null;
+		}
+	}, [railPinchActive]);
+
 	const markHorizontalFromFramerDrag = useCallback(() => {
 		const s = stripPtrRef.current;
 		if (s?.decided === 'pending') {
@@ -85,6 +94,10 @@ export function useViewersThumbnailStripInteraction({
 				stripPtrRef.current = null;
 				return;
 			}
+			if (railPinchActive) {
+				stripPtrRef.current = null;
+				return;
+			}
 			stripPtrRef.current = {
 				pointerId: e.pointerId,
 				x0: e.clientX,
@@ -92,7 +105,7 @@ export function useViewersThumbnailStripInteraction({
 				decided: 'pending',
 			};
 		},
-		[],
+		[railPinchActive],
 	);
 
 	const onPointerMove = useCallback(
@@ -122,12 +135,12 @@ export function useViewersThumbnailStripInteraction({
 				dy > GESTURE_AXIS_LOCK_PX &&
 				Math.abs(dy) > Math.abs(dx) * STRIP_VERTICAL_OVER_HORIZONTAL
 			) {
-				s.decided = 'vertical';
+				s.decided = railPinchActive ? 'horizontal' : 'vertical';
 				return;
 			}
 			s.decided = 'horizontal';
 		},
-		[],
+		[railPinchActive],
 	);
 
 	const finishStripPointer = useCallback(

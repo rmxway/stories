@@ -191,7 +191,7 @@ export const ProgressRow = styled(motion.div)`
 
 export const ProgressTrack = styled.div`
 	flex: 1;
-	height: 1px;
+	height: 2px;
 	border-radius: 2px;
 	background: rgba(255, 255, 255, 0.25);
 	overflow: hidden;
@@ -254,9 +254,13 @@ export const StoryInfo = styled.div`
 	}
 `;
 
-export const StoryImageWrap = styled(motion.div)<{ $viewersMode?: boolean }>`
+export const StoryImageWrap = styled(motion.div)<{
+	$viewersMode?: boolean;
+	/** Активный pinch по кадру: область картинки выше хрома (прогресс, шапка). */
+	$railPinchActive?: boolean;
+}>`
 	position: relative;
-	z-index: 5;
+	z-index: ${({ $railPinchActive }) => ($railPinchActive ? 120 : 5)};
 	flex: 1;
 	min-height: 0;
 	display: flex;
@@ -281,6 +285,7 @@ export const StoryImageInner = styled(motion.div)`
 	transform-origin: top center;
 `;
 
+/** 50% desktop tap-зоны; на touch отключены, чтобы pinch работал по всей картинке. */
 export const StoryTapZone = styled.button<{
 	$side: 'left' | 'right';
 	$pressed?: boolean;
@@ -289,16 +294,20 @@ export const StoryTapZone = styled.button<{
 	top: 0;
 	bottom: 0;
 	width: 50%;
+	pointer-events: none;
 	padding: 0;
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	z-index: 4;
+	z-index: 85;
 	overflow: hidden;
 	-webkit-tap-highlight-color: transparent;
 	touch-action: none;
-
 	${({ $side }) => ($side === 'left' ? 'left: 0;' : 'right: 0;')}
+
+	@media (hover: hover) and (pointer: fine) {
+		pointer-events: auto;
+	}
 
 	&::after {
 		content: '';
@@ -640,7 +649,9 @@ export const StorySwipeSliderWrap = styled(motion.div)`
 
 /** Горизонтальный трек: ширина слайда совпадает с вьюпортом (100cqi). */
 
-export const StoryThumbnailItemWrap = styled(motion.div)`
+export const StoryThumbnailItemWrap = styled(motion.div)<{
+	$pinchExpanded?: boolean;
+}>`
 	position: relative;
 	box-sizing: border-box;
 	flex-shrink: 0;
@@ -648,7 +659,9 @@ export const StoryThumbnailItemWrap = styled(motion.div)`
 	width: 100cqi;
 	height: 100%;
 	border-radius: 4px;
-	overflow: hidden;
+	overflow: ${({ $pinchExpanded }) =>
+		$pinchExpanded ? 'visible' : 'hidden'};
+	z-index: ${({ $pinchExpanded }) => ($pinchExpanded ? 50 : 'auto')};
 	pointer-events: auto;
 	transform-origin: center;
 	cursor: pointer;
@@ -661,6 +674,28 @@ export const StoryThumbnailItemWrap = styled(motion.div)`
 		-webkit-touch-callout: none;
 		pointer-events: none;
 	}
+`;
+
+/** Оболочка: pinch через transform; `transform-origin` на время жеста выставляет useStoryCoverPinch. */
+export const StoryPinchZoomTransformShell = styled.div<{ $touchPan?: boolean }>`
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 100%;
+	box-sizing: border-box;
+	/* В режиме story — только pinch; в ленте миниатюр — pan-x, чтобы Framer тянул рельс. */
+	touch-action: ${({ $touchPan }) => ($touchPan ? 'pan-x' : 'none')};
+`;
+
+/**
+ * Слой жестов pinch на весь кадр; визуальные половины (StoryTapZone) ниже, не перехватывают ввод.
+ */
+export const StoryPinchZoomSlot = styled.div<{ $railPinchExpanded?: boolean }>`
+	position: absolute;
+	inset: 0;
+	z-index: ${({ $railPinchExpanded }) => ($railPinchExpanded ? 90 : 5)};
+	box-sizing: border-box;
+	overflow: visible;
 `;
 
 export const StoryThumbnailPreviewBackground = styled(motion.div)`
