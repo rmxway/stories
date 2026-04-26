@@ -23,7 +23,6 @@ import {
 type UseStoryViewerSnapMotionArgs = {
 	dismissDragY: MotionValue<number>;
 	swipeUpDragY: MotionValue<number>;
-	reducedMotion: boolean;
 	onClose: () => void;
 	suppressTapClickRef: RefObject<boolean>;
 	setViewersStage: (stage: ViewersStage) => void;

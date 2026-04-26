@@ -1,6 +1,6 @@
 'use client';
 
-import { useMotionValue, useReducedMotion, useTransform } from 'framer-motion';
+import { useMotionValue, useTransform } from 'framer-motion';
 import {
 	type MouseEvent,
 	type PointerEvent as ReactPointerEvent,
@@ -29,8 +29,6 @@ import {
 	OVERLAY_DIMMEST_OPACITY,
 	SHELL_MIN_SCALE,
 	VERTICAL_DOMINANCE_OVER_HORIZONTAL,
-	VIEWERS_CHROME_SCALE_MAX,
-	VIEWERS_CHROME_SCALE_MIN,
 } from './storyViewerGestureConstants';
 import { isInsideViewersInteractiveTarget } from './storyViewerGestureDom';
 import { runTapIfNotSuppressed, tryStoryTap } from './storyViewerTapGesture';
@@ -107,7 +105,6 @@ export function useStoryViewerInteractions({
 
 	const dismissDragY = useMotionValue(0);
 	const swipeUpDragY = useMotionValue(0);
-	const reducedMotion = useReducedMotion() ?? false;
 
 	useEffect(() => {
 		if (!isWindowDefined) {
@@ -138,7 +135,6 @@ export function useStoryViewerInteractions({
 	} = useStoryViewerSnapMotion({
 		dismissDragY,
 		swipeUpDragY,
-		reducedMotion,
 		onClose,
 		suppressTapClickRef,
 		setViewersStage,
@@ -163,57 +159,30 @@ export function useStoryViewerInteractions({
 	const thumbnailsHeightPx = storyHeightPx * 0.5;
 	const panelCollapsedHeightPx = storyHeightPx * 0.5;
 
-	const {
-		storyScale,
-		storyHeight,
-		panelY,
-		panelHeightPx,
-		thumbnailRailY,
-		viewersChromeOpacity,
-		viewersChromeScale,
-		viewersChromeTransform,
-	} = useTransform(
-		swipeUpDragY,
-		[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
-		{
-			storyScale: [1, 0.5, 0.5],
-			storyHeight: [
-				storyHeightPx - 10,
-				thumbnailsHeightPx - 10,
-				thumbnailsHeightPx - 10,
-			],
-			panelY: [panelCollapsedHeightPx, 0, 0],
-			panelHeightPx: [
-				panelCollapsedHeightPx,
-				panelCollapsedHeightPx,
-				storyHeightPx,
-			],
-			thumbnailRailY: [
-				0,
-				VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
-				-storyHeightPx * VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
-			],
-			viewersChromeOpacity: [0, 1, 1],
-			viewersChromeScale: [
-				VIEWERS_CHROME_SCALE_MIN,
-				VIEWERS_CHROME_SCALE_MAX,
-				VIEWERS_CHROME_SCALE_MAX,
-			],
-			viewersChromeTransform: [
-				`scale(${VIEWERS_CHROME_SCALE_MIN})`,
-				`scale(${VIEWERS_CHROME_SCALE_MAX})`,
-				`scale(${VIEWERS_CHROME_SCALE_MAX})`,
-			],
-		},
-	);
-
-	const { previewRevealOpacity } = useTransform(
-		swipeUpDragY,
-		[0, SWIPE_UP_THUMBNAILS_PX + 2, SWIPE_UP_THUMBNAILS_PX],
-		{
-			previewRevealOpacity: [1, 1, 0],
-		},
-	);
+	const { storyScale, storyHeight, panelY, panelHeightPx, thumbnailRailY } =
+		useTransform(
+			swipeUpDragY,
+			[0, SWIPE_UP_THUMBNAILS_PX, SWIPE_UP_DRAG_MAX_PX],
+			{
+				storyScale: [1, 0.5, 0.5],
+				storyHeight: [
+					storyHeightPx - 10,
+					thumbnailsHeightPx - 10,
+					thumbnailsHeightPx - 10,
+				],
+				panelY: [panelCollapsedHeightPx, 0, 0],
+				panelHeightPx: [
+					panelCollapsedHeightPx,
+					panelCollapsedHeightPx,
+					storyHeightPx,
+				],
+				thumbnailRailY: [
+					0,
+					VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
+					-storyHeightPx * VIEWERS_EXPAND_THUMB_RAIL_VIEWPORT_RATIO,
+				],
+			},
+		);
 
 	const { previewOpacity } = useTransform(
 		swipeUpDragY,
@@ -673,10 +642,6 @@ export function useStoryViewerInteractions({
 		panelHeightPx,
 		thumbnailRailY,
 		previewOpacity,
-		previewRevealOpacity,
-		viewersChromeOpacity,
-		viewersChromeScale,
-		viewersChromeTransform,
 		closeViewersMode,
 		openViewersMode,
 		collapseViewersToThumbnails,
@@ -694,8 +659,5 @@ export function useStoryViewerInteractions({
 		onTapNextGuarded,
 		onTapPreviousFromShell,
 		onTapNextFromShell,
-
-		animateDismissTo,
-		animateSwipeTo,
 	};
 }

@@ -9,16 +9,18 @@ import {
 	useState,
 } from 'react';
 
-import type { ViewersStage } from '../../constants';
+import {
+	STORY_THUMBNAIL_TRACK_GAP_PX,
+	type ViewersStage,
+} from '../../constants';
 
 const STORIES_THUMB_ASPECT_H_OVER_W = 1.8;
-const TRACK_GAP_PX = 20;
 
 function getStoriesThumbStrideFallbackPx(): number {
 	const assumedViewportH = 812;
 	const stripHeightPx = assumedViewportH * 0.5;
 	const cardWidthPx = stripHeightPx / STORIES_THUMB_ASPECT_H_OVER_W;
-	return cardWidthPx + TRACK_GAP_PX;
+	return cardWidthPx + STORY_THUMBNAIL_TRACK_GAP_PX;
 }
 
 const INITIAL_ITEM_STRIDE_PX = getStoriesThumbStrideFallbackPx();
@@ -53,10 +55,10 @@ function snapSpringConfig(reducedMotion: boolean) {
 function parseGapPx(track: HTMLElement): number {
 	const g = getComputedStyle(track).gap;
 	if (!g || g === 'normal') {
-		return TRACK_GAP_PX;
+		return STORY_THUMBNAIL_TRACK_GAP_PX;
 	}
 	const n = Number.parseFloat(g);
-	return Number.isFinite(n) ? n : TRACK_GAP_PX;
+	return Number.isFinite(n) ? n : STORY_THUMBNAIL_TRACK_GAP_PX;
 }
 
 type UseStoriesThumbnailsSliderArgs = {

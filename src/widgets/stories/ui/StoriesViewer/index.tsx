@@ -22,15 +22,16 @@ import {
 	useStoriesViewerInteraction,
 	useStoriesViewerSession,
 } from '../StoriesViewerContext';
-import { StoriesViewersMode } from '../StoriesViewersMode';
 import { StorySwipeNeighbors } from '../StorySwipeNeighbors';
 import { ViewerAvatar } from '../ViewerAvatar';
+import { ViewersListPanel } from '../ViewersListPanel';
 import {
 	Overlay,
 	OverlayBackdrop,
 	StoryImageWrap,
 	StoryInfo,
 	StoryShell,
+	ViewersLayer,
 	VisuallyHidden,
 } from './styled';
 
@@ -114,8 +115,12 @@ function StoriesViewerInner() {
 		isViewersMode,
 		isVerticalSwipeUpActive,
 		isVerticalSwipeDownCloseActive,
+		panelHeightPx,
+		panelY,
 		previewOpacity,
 		pointerProps,
+		viewersStage,
+		closeViewersMode,
 	} = useStoriesViewerInteraction();
 
 	const { railPinchActive } = useStoriesViewerSession();
@@ -129,6 +134,10 @@ function StoriesViewerInner() {
 		holdPaused ||
 		isVerticalSwipeUpActive ||
 		isViewersMode ||
+		isVerticalSwipeDownCloseActive;
+	const chromeInteractive =
+		isViewersMode ||
+		isVerticalSwipeUpActive ||
 		isVerticalSwipeDownCloseActive;
 
 	const suppressSegmentResetOnHideCompleteRef = useRef(false);
@@ -255,7 +264,19 @@ function StoriesViewerInner() {
 				>
 					<StorySwipeNeighbors />
 				</StoryImageWrap>
-				<StoriesViewersMode key="stories-viewers-layer" />
+				<ViewersLayer key="stories-viewers-layer">
+					<ViewersListPanel
+						viewers={story.viewers}
+						panelY={panelY}
+						panelHeightPx={panelHeightPx}
+						interactive={chromeInteractive}
+						lockVerticalTouch={
+							viewersStage === 'thumbnails' ||
+							viewersStage === 'expanded'
+						}
+						onClose={closeViewersMode}
+					/>
+				</ViewersLayer>
 			</StoryShell>
 		</>
 	);
