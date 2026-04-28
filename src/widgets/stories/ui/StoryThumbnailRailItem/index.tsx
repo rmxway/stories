@@ -106,7 +106,12 @@ export function StoryThumbnailRailItem({
 						/>
 					)}
 					<StoryThumbnailPreviewBackground
-						style={{ opacity: s.previewBackgroundOpacity }}
+						style={{
+							opacity:
+								story.viewers.length > 0
+									? s.previewBackgroundOpacity
+									: 0,
+						}}
 					/>
 				</StoryThumbnailItemWrap>
 			</StoryThumbnailScaleLayer>

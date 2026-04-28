@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
@@ -16,12 +15,11 @@ import {
 	PreviewButton,
 	PreviewWrap,
 	StoryAvatarImage,
+	StoryMyStoryText,
 	StoryRingFrame,
 	StoryRingInner,
 	StoryRingSvgWrap,
 } from './styled';
-
-const MotionPreviewButton = motion.create(PreviewButton);
 
 type StoriesPreviewProps = {
 	stories: readonly StoryItem[];
@@ -45,14 +43,14 @@ export const StoriesPreview = forwardRef<
 
 	return (
 		<PreviewWrap>
-			<MotionPreviewButton
+			<PreviewButton
 				ref={ref}
 				type="button"
 				layoutId={STORIES_SHELL_LAYOUT_ID}
 				aria-label="Открыть сторисы"
 				onClick={onOpen}
 				whileTap={{ scale: 0.96 }}
-				transition={{ type: 'tween', duration: 0.2 }}
+				transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
 			>
 				<StoryRingFrame>
 					<StoryRingSvgWrap>
@@ -75,7 +73,8 @@ export const StoriesPreview = forwardRef<
 						/>
 					</StoryRingInner>
 				</StoryRingFrame>
-			</MotionPreviewButton>
+				<StoryMyStoryText>Моя история</StoryMyStoryText>
+			</PreviewButton>
 		</PreviewWrap>
 	);
 });

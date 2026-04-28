@@ -77,12 +77,20 @@ export function StoryViewersPreview({
 		},
 	);
 
+	const mainAnimation = {
+		x,
+		y: hasViewers ? y : 0,
+		left,
+		gap,
+		opacity: hasViewers ? 1 : fadeIn,
+	};
+
 	const IconMotion = motion.create(Icon);
 
 	return (
 		<ViewersPreviewWrap
 			$interactive={!disabled}
-			style={{ x, y, left, gap }}
+			style={mainAnimation}
 			data-viewers-preview="true"
 			data-viewers-interactive="true"
 			role={disabled ? undefined : 'button'}

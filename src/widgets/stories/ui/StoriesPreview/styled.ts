@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import styled from 'styled-components';
 
@@ -5,12 +6,18 @@ export const PreviewWrap = styled.div`
 	margin-top: 1.5rem;
 	display: flex;
 	justify-content: center;
+	flex-direction: column;
 	z-index: 1000;
-	height: 72px;
 	width: 72px;
 `;
 
-export const PreviewButton = styled.button`
+export const StoryMyStoryText = styled.div`
+	font-size: 12px;
+	text-align: center;
+	margin-top: 8px;
+	color: #fff;
+`;
+export const PreviewButton = styled(motion.button)`
 	padding: 0;
 	border: none;
 	background: transparent;
