@@ -1,10 +1,22 @@
 import { motion } from 'framer-motion';
 import styled, { css } from 'styled-components';
 
-import { STORY_SHELL_HEIGHT_OVER_WIDTH } from '@/widgets/stories/constants';
+import {
+	STORY_SHELL_HEIGHT_OVER_WIDTH,
+	STORY_SHELL_MIN_WIDTH_PX,
+} from '@/widgets/stories/constants';
 
 const STORY_CARD_ASPECT_RATIO = `1/${STORY_SHELL_HEIGHT_OVER_WIDTH}`;
-const STORY_CARD_MIN_WIDTH = '120px';
+
+const storyShellFrameStyles = css`
+	box-sizing: border-box;
+	width: min(100%, 100dvh / ${STORY_SHELL_HEIGHT_OVER_WIDTH});
+	height: auto;
+	max-height: 100dvh;
+	max-width: 100%;
+	min-width: ${STORY_SHELL_MIN_WIDTH_PX}px;
+	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
+`;
 
 export const Overlay = styled.div`
 	position: fixed;
@@ -30,16 +42,25 @@ export const OverlayBackdrop = styled.div`
 	pointer-events: auto;
 `;
 
+export const OverlayBackdropFadeLayer = styled(motion.div)`
+	position: absolute;
+	inset: 0;
+`;
+
+export const StoryShellScaleFrame = styled(motion.div)`
+	${storyShellFrameStyles}
+	position: relative;
+	z-index: 1;
+	display: flex;
+	transform-origin: center center;
+`;
+
 export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	position: relative;
 	z-index: 1;
 	box-sizing: border-box;
-	width: min(100%, 100dvh / ${STORY_SHELL_HEIGHT_OVER_WIDTH});
-	height: auto;
-	max-height: 100dvh;
-	max-width: 100%;
-	min-width: ${STORY_CARD_MIN_WIDTH};
-	aspect-ratio: ${STORY_CARD_ASPECT_RATIO};
+	width: 100%;
+	height: 100%;
 	display: flex;
 	flex-direction: column;
 	padding: 10px 0 clamp(50px, 4cqi, 10vh);

@@ -1,8 +1,5 @@
 import { type ValueTransition } from 'motion-dom';
-/**
- * Единый transition для `animate(swipeUpDragY)` и shared layout (layoutId):
- * открытие/закрытие режима зрителей должно идти одной и той же кривой без резкого добегания.
- */
+/** Единый transition для открытия/закрытия режима зрителей без резкого добегания. */
 export const VIEWERS_CHROME_OPEN_SPRING = {
 	type: 'tween',
 	duration: 0.22,

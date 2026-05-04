@@ -4,15 +4,15 @@ import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+	type ConnectedElementMotion,
+	connectedScaleTransition,
+	connectedScaleVariants,
 	FadeInOutVariant,
+	getConnectedScaleInitial,
 	storyChromeVariants,
 } from '@/shared/lib/framer-motion';
 import { Flexbox, Icon, Space } from '@/shared/ui';
-import {
-	STORIES_SHELL_LAYOUT_ID,
-	STORY_AVATAR_SRC,
-	type StoryItem,
-} from '@/widgets/stories/constants';
+import { STORY_AVATAR_SRC, type StoryItem } from '@/widgets/stories/constants';
 
 import { CloseButton } from '../shared/styled';
 import { StoriesProgress } from '../StoriesProgress';
@@ -28,20 +28,24 @@ import { ViewersListPanel } from '../ViewersListPanel';
 import {
 	Overlay,
 	OverlayBackdrop,
+	OverlayBackdropFadeLayer,
 	StoryImageWrap,
 	StoryInfo,
 	StoryShell,
+	StoryShellScaleFrame,
 	ViewersLayer,
 	VisuallyHidden,
 } from './styled';
 
 const MotionOverlay = motion.create(Overlay);
 const MotionOverlayBackdrop = motion.create(OverlayBackdrop);
+const MotionOverlayBackdropFadeLayer = motion.create(OverlayBackdropFadeLayer);
 
 type StoriesViewerProps = {
 	stories: readonly StoryItem[];
 	activeIndex: number;
 	segmentReplayToken: number;
+	openingMotion: ConnectedElementMotion | null;
 	onClose: () => void;
 	onProgressComplete: (segmentIndex: number) => void;
 	onTapPrevious: () => void;
@@ -54,6 +58,7 @@ export function StoriesViewer({
 	stories,
 	activeIndex,
 	segmentReplayToken,
+	openingMotion,
 	onClose,
 	onProgressComplete,
 	onTapPrevious,
@@ -66,7 +71,7 @@ export function StoriesViewer({
 		return null;
 	}
 
-	const domain: StoriesViewerProps = {
+	const domain = {
 		stories,
 		activeIndex,
 		segmentReplayToken,
@@ -88,15 +93,20 @@ export function StoriesViewer({
 			initial="hidden"
 			animate="visible"
 			exit="hidden"
+			transition={connectedScaleTransition}
 		>
 			<StoriesViewerProvider {...domain}>
-				<StoriesViewerInner />
+				<StoriesViewerInner openingMotion={openingMotion} />
 			</StoriesViewerProvider>
 		</MotionOverlay>
 	);
 }
 
-function StoriesViewerInner() {
+type StoriesViewerInnerProps = {
+	openingMotion: ConnectedElementMotion | null;
+};
+
+function StoriesViewerInner({ openingMotion }: StoriesViewerInnerProps) {
 	const {
 		stories,
 		activeIndex,
@@ -185,99 +195,113 @@ function StoriesViewerInner() {
 			<VisuallyHidden id="stories-viewer-desc">
 				Листайте стрелками влево и вправо. Escape закрывает окно.
 			</VisuallyHidden>
-			<MotionOverlayBackdrop
+			<MotionOverlayBackdropFadeLayer
 				aria-hidden
-				style={{ opacity: dimmerOpacity }}
-			/>
-			<StoryShell
-				$viewersChrome={isViewersMode}
-				layoutId={STORIES_SHELL_LAYOUT_ID}
-				style={{ y: dismissDragY, scale: shellScale }}
-				transition={{ type: 'tween', duration: 0.2 }}
-				{...pointerProps}
+				variants={FadeInOutVariant}
+				initial="hidden"
+				animate="visible"
+				exit="hidden"
 			>
-				<motion.div
-					style={{
-						zIndex: 40,
-						opacity: previewOpacity,
-						pointerEvents: isVerticalSwipeUpActive
-							? 'auto'
-							: 'none',
-					}}
+				<MotionOverlayBackdrop style={{ opacity: dimmerOpacity }} />
+			</MotionOverlayBackdropFadeLayer>
+
+			<StoryShellScaleFrame
+				variants={connectedScaleVariants}
+				initial={getConnectedScaleInitial(openingMotion)}
+				animate="visible"
+				exit={getConnectedScaleInitial(openingMotion)}
+				transition={connectedScaleTransition}
+			>
+				<StoryShell
+					$viewersChrome={isViewersMode}
+					style={{ y: dismissDragY, scale: shellScale }}
+					transition={{ type: 'tween', duration: 0.2 }}
+					{...pointerProps}
 				>
 					<motion.div
-						variants={storyChromeVariants}
-						layout={false}
-						animate={isStoryInfoVisible ? 'visible' : 'hidden'}
-						onAnimationComplete={() => {
-							if (
-								!isStoryInfoVisibleRef.current &&
-								!suppressSegmentResetOnHideCompleteRef.current
-							) {
-								onResetSegmentTimer();
-							}
+						style={{
+							zIndex: 40,
+							opacity: previewOpacity,
+							pointerEvents: isVerticalSwipeUpActive
+								? 'auto'
+								: 'none',
 						}}
 					>
-						<StoriesProgress
-							count={stories.length}
-							activeIndex={activeIndex}
-							segmentReplayToken={segmentReplayToken}
-							holdPaused={progressPaused}
-							onSegmentComplete={onProgressComplete}
-						/>
+						<motion.div
+							variants={storyChromeVariants}
+							layout={false}
+							animate={isStoryInfoVisible ? 'visible' : 'hidden'}
+							onAnimationComplete={() => {
+								if (
+									!isStoryInfoVisibleRef.current &&
+									!suppressSegmentResetOnHideCompleteRef.current
+								) {
+									onResetSegmentTimer();
+								}
+							}}
+						>
+							<StoriesProgress
+								count={stories.length}
+								activeIndex={activeIndex}
+								segmentReplayToken={segmentReplayToken}
+								holdPaused={progressPaused}
+								onSegmentComplete={onProgressComplete}
+							/>
 
-						<StoryInfo>
-							<Flexbox $gap={10} $align="center" $nowrap>
-								<ViewerAvatar
-									userId={story.id}
-									name="Евгений"
-									img={STORY_AVATAR_SRC}
-									sizes="40px"
-									isAvatar
-								/>
-								<Flexbox $direction="column" $gap={2}>
-									<span>
-										<strong>Ваша история</strong> &bull;{' '}
-										{activeIndex + 1}/{stories.length}
-									</span>
-									<span>{story.time}</span>
+							<StoryInfo>
+								<Flexbox $gap={10} $align="center" $nowrap>
+									<ViewerAvatar
+										userId={story.id}
+										name="Евгений"
+										img={STORY_AVATAR_SRC}
+										sizes="40px"
+										isAvatar
+									/>
+									<Flexbox $direction="column" $gap={2}>
+										<span>
+											<strong>Ваша история</strong> &bull;{' '}
+											{activeIndex + 1}/{stories.length}
+										</span>
+										<span>{story.time}</span>
+									</Flexbox>
+									<Space />
+									<CloseButton
+										type="button"
+										aria-label="Закрыть"
+										$disabled={
+											isVerticalSwipeUpActive ||
+											isViewersMode
+										}
+										onClick={onClose}
+									>
+										<Icon icon="times-small" size={5} />
+									</CloseButton>
 								</Flexbox>
-								<Space />
-								<CloseButton
-									type="button"
-									aria-label="Закрыть"
-									$disabled={
-										isVerticalSwipeUpActive || isViewersMode
-									}
-									onClick={onClose}
-								>
-									<Icon icon="times-small" size={5} />
-								</CloseButton>
-							</Flexbox>
-						</StoryInfo>
+							</StoryInfo>
+						</motion.div>
 					</motion.div>
-				</motion.div>
 
-				<StoryImageWrap
-					$viewersMode={isViewersMode}
-					$railPinchActive={railPinchActive}
-				>
-					<StorySwipeNeighbors />
-				</StoryImageWrap>
-				<ViewersLayer key="stories-viewers-layer">
-					<ViewersListPanel
-						viewers={story.viewers}
-						panelY={panelY}
-						panelHeightPx={panelHeightPx}
-						interactive={chromeInteractive}
-						lockVerticalTouch={
-							viewersStage === 'thumbnails' ||
-							viewersStage === 'expanded'
-						}
-						onClose={closeViewersMode}
-					/>
-				</ViewersLayer>
-			</StoryShell>
+					<StoryImageWrap
+						$viewersMode={isViewersMode}
+						$railPinchActive={railPinchActive}
+					>
+						<StorySwipeNeighbors />
+					</StoryImageWrap>
+					<ViewersLayer key="stories-viewers-layer">
+						<ViewersListPanel
+							viewers={story.viewers}
+							panelY={panelY}
+							panelHeightPx={panelHeightPx}
+							interactive={chromeInteractive}
+							lockVerticalTouch={
+								viewersStage === 'thumbnails' ||
+								viewersStage === 'expanded'
+							}
+							onClose={closeViewersMode}
+						/>
+					</ViewersLayer>
+				</StoryShell>
+			</StoryShellScaleFrame>
 		</>
 	);
 }

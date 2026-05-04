@@ -16,6 +16,7 @@ export const StoryMyStoryText = styled.div`
 	text-align: center;
 	margin-top: 8px;
 	color: #fff;
+	white-space: nowrap;
 `;
 export const PreviewButton = styled(motion.button)`
 	padding: 0;

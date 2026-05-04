@@ -17,11 +17,10 @@ export const StyledButton = styled(motion.button)<ButtonProps>`
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		padding: ${theme.layout.basePadding};
 		color: #111;
 		text-transform: uppercase;
 		font-weight: 600;
-		font-size: clamp(12px, 1cqi, 16px);
+		font-size: clamp(10px, 1cqi, 14px);
 		line-height: 1;
 		border: none;
 		background: transparent;
@@ -48,17 +47,18 @@ export const StyledButton = styled(motion.button)<ButtonProps>`
 
 		${$size === 'small' &&
 		css`
-			padding: 8px;
+			padding: clamp(6px, 1cqi, 8px);
+			
 		`}
 
         ${$size === 'medium' &&
 		css`
-			padding: 16px;
+			padding: clamp(10px, 1cqi, 16px);
 		`}
 
         ${$size === 'large' &&
 		css`
-			padding: 24px;
+			padding: clamp(10px, 1cqi, 24px);
 		`}
 
 		${$loading &&

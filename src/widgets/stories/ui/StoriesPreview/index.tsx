@@ -1,13 +1,9 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, type Ref } from 'react';
 
 import { getBlurDataURL } from '@/lib/getBlurDataURL';
-import {
-	STORIES_SHELL_LAYOUT_ID,
-	STORY_AVATAR_SRC,
-	type StoryItem,
-} from '@/widgets/stories/constants';
+import { STORY_AVATAR_SRC, type StoryItem } from '@/widgets/stories/constants';
 import { useProgressiveAvatarPhase } from '@/widgets/stories/lib/media';
 
 import { StoryRingSvg } from '../StoryRingSvg';
@@ -26,6 +22,7 @@ type StoriesPreviewProps = {
 	seenIds: string[];
 	/** После чтения localStorage: непросмотренные — градиент; до — все сегменты серые. */
 	seenStorageLoaded: boolean;
+	originRef?: Ref<HTMLDivElement>;
 	onOpen: () => void;
 };
 
@@ -33,7 +30,7 @@ export const StoriesPreview = forwardRef<
 	HTMLButtonElement,
 	StoriesPreviewProps
 >(function StoriesPreview(
-	{ stories, seenIds, seenStorageLoaded, onOpen },
+	{ stories, seenIds, seenStorageLoaded, originRef, onOpen },
 	ref,
 ) {
 	const seenByIndex = stories.map((s) => seenIds.includes(s.id));
@@ -46,13 +43,12 @@ export const StoriesPreview = forwardRef<
 			<PreviewButton
 				ref={ref}
 				type="button"
-				layoutId={STORIES_SHELL_LAYOUT_ID}
 				aria-label="Открыть сторисы"
 				onClick={onOpen}
 				whileTap={{ scale: 0.96 }}
 				transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
 			>
-				<StoryRingFrame>
+				<StoryRingFrame ref={originRef}>
 					<StoryRingSvgWrap>
 						<StoryRingSvg
 							seenByIndex={seenByIndex}

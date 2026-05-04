@@ -52,6 +52,7 @@ const base = css`
 			min-width: 320px;
 			color: #fff;
 			background-color: ${theme.colors.gray.$9};
+			min-height: 2000px;
 		`}
 	}
 	code {

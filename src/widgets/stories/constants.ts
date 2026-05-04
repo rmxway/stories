@@ -3,13 +3,11 @@ export const STORIES_STORAGE_KEY = 'stories:seenIds';
 /** Событие после изменения списка просмотренных в storage (та же вкладка). */
 export const STORIES_SEEN_IDS_CHANGED_EVENT = 'stories:seenIdsChanged' as const;
 
-/** Shared layout id (Framer Motion) между превью и оболочкой просмотра сторис. */
-export const STORIES_SHELL_LAYOUT_ID = 'stories-shell' as const;
-
 export type ViewersStage = 'story' | 'thumbnails' | 'expanded';
 
 /** Высота карточки сторис к её ширине (портретный кадр, как 9:16 ≈ 1:1.8). */
 export const STORY_SHELL_HEIGHT_OVER_WIDTH = 1.8;
+export const STORY_SHELL_MIN_WIDTH_PX = 120;
 
 /**
  * `sizes` для кадра в рельсе: `100%` у next/image недопустим и даёт узкий srcset → «крошечная» картинка.

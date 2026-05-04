@@ -55,8 +55,6 @@ export function MainPage() {
 			>
 				Очистить просмотры
 			</Button>
-			<br />
-			<br />
 			<StoriesWidget />
 		</Root>
 	);

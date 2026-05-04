@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGroup } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
 	useCallback,
 	useEffect,
@@ -8,9 +8,17 @@ import {
 	useRef,
 	useState,
 } from 'react';
+import styled from 'styled-components';
+
+import { useBodyScrollLock } from '@/shared/lib/dom';
+import {
+	type ConnectedElementMotion,
+	getElementRect,
+} from '@/shared/lib/framer-motion';
 
 import { STORIES_SEEN_IDS_CHANGED_EVENT } from '../constants';
 import { isEditableTarget } from '../lib/isEditableTarget';
+import { getStoryShellConnectedMotion } from '../lib/motion';
 import {
 	getInitialOpenIndex,
 	resolveStoriesProgressComplete,
@@ -19,6 +27,10 @@ import { loadSeenIds, saveSeenIds } from '../lib/storage';
 import { STORIES } from '../stories.data';
 import { StoriesPreview } from './StoriesPreview';
 import { StoriesViewer } from './StoriesViewer';
+
+export const StoriesWidgetContainer = styled.div`
+	margin: 100px 0;
+`;
 
 export function StoriesWidget() {
 	const [seenIds, setSeenIds] = useState<string[]>([]);
@@ -30,9 +42,13 @@ export function StoriesWidget() {
 	const [segmentReplayToken, setSegmentReplayToken] = useState(0);
 	const handleCloseRef = useRef<() => void>(() => undefined);
 	const previewTriggerRef = useRef<HTMLButtonElement>(null);
+	const previewOriginRef = useRef<HTMLDivElement>(null);
 	const wasOpenRef = useRef(false);
 	const activeIndexRef = useRef(activeIndex);
+	const [openingMotion, setOpeningMotion] =
+		useState<ConnectedElementMotion | null>(null);
 	activeIndexRef.current = activeIndex;
+	useBodyScrollLock(isOpen);
 
 	useLayoutEffect(() => {
 		setSeenIds(loadSeenIds());
@@ -64,6 +80,12 @@ export function StoriesWidget() {
 		wasOpenRef.current = isOpen;
 	}, [isOpen]);
 
+	useEffect(() => {
+		if (!isOpen) {
+			setOpeningMotion(null);
+		}
+	}, [isOpen]);
+
 	const markSeen = useCallback((id: string) => {
 		setSeenIds((prev) => {
 			if (prev.includes(id)) {
@@ -76,6 +98,9 @@ export function StoriesWidget() {
 	}, []);
 
 	const handleOpen = useCallback(() => {
+		const sourceRect = getElementRect(previewOriginRef.current);
+
+		setOpeningMotion(getStoryShellConnectedMotion(sourceRect));
 		setActiveIndex(getInitialOpenIndex(STORIES, seenIds));
 		setViewerSessionKey((k) => k + 1);
 		setIsOpen(true);
@@ -183,31 +208,33 @@ export function StoriesWidget() {
 	}, [isOpen, goToPreviousStory, goToNextStory]);
 
 	return (
-		<LayoutGroup>
-			{!isOpen && (
-				<StoriesPreview
-					ref={previewTriggerRef}
-					stories={STORIES}
-					seenIds={seenIds}
-					seenStorageLoaded={seenStorageLoaded}
-					onOpen={handleOpen}
-				/>
-			)}
+		<StoriesWidgetContainer>
+			<StoriesPreview
+				ref={previewTriggerRef}
+				originRef={previewOriginRef}
+				stories={STORIES}
+				seenIds={seenIds}
+				seenStorageLoaded={seenStorageLoaded}
+				onOpen={handleOpen}
+			/>
 
-			{isOpen ? (
-				<StoriesViewer
-					key={viewerSessionKey}
-					stories={STORIES}
-					activeIndex={activeIndex}
-					segmentReplayToken={segmentReplayToken}
-					onClose={handleClose}
-					onProgressComplete={handleProgressComplete}
-					onTapPrevious={goToPreviousStory}
-					onTapNext={goToNextStory}
-					onChangeActiveIndex={goToIndex}
-					onResetSegmentTimer={replayCurrentSegment}
-				/>
-			) : null}
-		</LayoutGroup>
+			<AnimatePresence>
+				{isOpen ? (
+					<StoriesViewer
+						key={viewerSessionKey}
+						stories={STORIES}
+						activeIndex={activeIndex}
+						segmentReplayToken={segmentReplayToken}
+						openingMotion={openingMotion}
+						onClose={handleClose}
+						onProgressComplete={handleProgressComplete}
+						onTapPrevious={goToPreviousStory}
+						onTapNext={goToNextStory}
+						onChangeActiveIndex={goToIndex}
+						onResetSegmentTimer={replayCurrentSegment}
+					/>
+				) : null}
+			</AnimatePresence>
+		</StoriesWidgetContainer>
 	);
 }
