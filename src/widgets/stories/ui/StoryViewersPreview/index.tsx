@@ -65,21 +65,21 @@ export function StoryViewersPreview({
 			x: ['0%', '-50%', '-50%'],
 			left: ['0%', '50%', '50%'],
 			y: [
-				0,
-				-(window.innerHeight / 100) * 2,
-				-(window.innerHeight / 100) * 2,
+				-15,
+				-(window.innerHeight / 100) * 7,
+				-(window.innerHeight / 100) * 7,
 			],
 			gap: ['1cqi', '0px', '0px'],
 			xEye: [0, 40, 40],
-			scaleEye: [0, 1, 1],
-			scaleCount: [1, 1.2, 1.2],
-			widthEye: [0, 22, 22],
+			scaleEye: [0, 1.4, 1.4],
+			scaleCount: [1, 1.7, 1.7],
+			widthEye: [0, 40, 40],
 		},
 	);
 
 	const mainAnimation = {
 		x,
-		y: hasViewers ? y : 0,
+		y: hasViewers ? y : -10,
 		left,
 		gap,
 		opacity: hasViewers ? 1 : fadeIn,

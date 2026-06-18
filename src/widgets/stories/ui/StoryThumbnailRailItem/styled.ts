@@ -94,8 +94,6 @@ export const StoryThumbnailItemWrap = styled(motion.div)<{
 	width: 100cqi;
 	height: 100%;
 	border-radius: 4px;
-	overflow: ${({ $pinchExpanded }) =>
-		$pinchExpanded ? 'visible' : 'hidden'};
 	z-index: ${({ $pinchExpanded }) => ($pinchExpanded ? 50 : 'auto')};
 	pointer-events: auto;
 	transform-origin: center;
@@ -152,29 +150,34 @@ export const StoryThumbnailPreviewBackground = styled(motion.div)`
 	-webkit-touch-callout: none;
 `;
 
-export const StoryThumbnailPreviewLayer = styled(motion.div)`
-	position: absolute;
-	left: 0;
-	top: 0;
-	right: 0;
-	display: flex;
-	align-items: flex-end;
-	justify-content: flex-start;
-	pointer-events: none;
-	z-index: 20;
-`;
-
 export const StoryThumbnailPackedOffsetLayer = styled(motion.div)`
 	position: relative;
 	pointer-events: none;
+	display: flex;
+	height: 100%;
+	flex-direction: column;
 `;
 
 export const StoryThumbnailScaleLayer = styled(motion.div)<{
 	$allowPointerEvents?: boolean;
 }>`
 	width: 100%;
-	height: 100%;
+	flex-basis: calc(100% - 60px);
 	transform-origin: top center;
 	pointer-events: ${({ $allowPointerEvents = true }) =>
 		$allowPointerEvents ? 'auto' : 'none'};
+`;
+
+export const StoryThumbnailPreviewLayer = styled(motion.div)`
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -70px;
+	width: 100%;
+	max-height: 60px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	pointer-events: none;
+	z-index: 20;
 `;

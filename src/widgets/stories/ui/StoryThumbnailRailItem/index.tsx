@@ -113,21 +113,21 @@ export function StoryThumbnailRailItem({
 									: 0,
 						}}
 					/>
+					<StoryThumbnailPreviewLayer
+						style={{
+							height: s.storyHeight,
+							scale: s.scale,
+							opacity: s.opacity,
+						}}
+					>
+						<StoryViewersPreview
+							disabled={!s.allowPointerEvents}
+							viewers={story.viewers}
+							storyIndex={index}
+						/>
+					</StoryThumbnailPreviewLayer>
 				</StoryThumbnailItemWrap>
 			</StoryThumbnailScaleLayer>
-			<StoryThumbnailPreviewLayer
-				style={{
-					height: s.storyHeight,
-					scale: s.scale,
-					opacity: s.opacity,
-				}}
-			>
-				<StoryViewersPreview
-					disabled={!s.allowPointerEvents}
-					viewers={story.viewers}
-					storyIndex={index}
-				/>
-			</StoryThumbnailPreviewLayer>
 		</StoryThumbnailPackedOffsetLayer>
 	);
 }

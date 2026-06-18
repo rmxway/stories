@@ -4,8 +4,8 @@ export const ViewersPreviewAvatarWrap = styled.div<{
 	$isAvatar?: boolean;
 }>`
 	position: relative;
-	width: clamp(14px, 10cqi, 34px);
-	height: clamp(14px, 10cqi, 34px);
+	width: clamp(25px, 8cqi, 35px);
+	height: clamp(25px, 8cqi, 35px);
 	border-radius: 50%;
 	overflow: hidden;
 

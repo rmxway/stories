@@ -63,7 +63,7 @@ export const StoryShell = styled(motion.div)<{ $viewersChrome?: boolean }>`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	padding: 10px 0 clamp(50px, 4cqi, 10vh);
+	padding-top: 10px;
 	container-type: inline-size;
 
 	user-select: none;

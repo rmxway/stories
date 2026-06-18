@@ -7,16 +7,14 @@ export const ViewersPreviewWrap = styled(motion.div)<{
 	${({ $interactive = true }) => css`
 		position: relative;
 		display: flex;
-		bottom: 6px;
+		bottom: 0;
 		align-items: center;
 		justify-content: flex-start;
-		height: clamp(40px, 8cqi, 60px);
 		transform-origin: top center;
 		z-index: 200;
 		pointer-events: ${$interactive ? 'auto' : 'none'};
 		cursor: ${$interactive ? 'pointer' : 'default'};
 		user-select: none;
-		padding: clamp(4px, 3cqi, 12px);
 	`}
 `;
 
@@ -32,5 +30,6 @@ export const ViewersPreviewCount = styled.div`
 	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 	display: flex;
 	align-items: center;
+	line-height: 10px;
 	gap: 6px;
 `;
